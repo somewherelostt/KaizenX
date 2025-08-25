@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthModal } from "@/components/auth-modal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
+import { apiUrl, imageUrl } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -48,7 +49,7 @@ export default function ProfilePage() {
     try {
       setLoadingUserData(true);
       // Fetch events from backend - you can expand this to get user-specific events
-      const eventsRes = await fetch("http://localhost:4000/api/events");
+      const eventsRes = await fetch(apiUrl("/api/events"));
       const allEvents = await eventsRes.json();
       
       // For demo purposes, we'll simulate user's attended events
@@ -59,7 +60,7 @@ export default function ProfilePage() {
         date: new Date(event.date).toLocaleDateString(),
         location: event.location || "TBD",
         status: "attended",
-        image: event.imageUrl ? `http://localhost:4000${event.imageUrl}` : "/community-event.png",
+        image: imageUrl(event.imageUrl) || "/community-event.png",
       }));
 
       // Add a future event
@@ -70,7 +71,7 @@ export default function ProfilePage() {
           date: new Date(allEvents[2].date).toLocaleDateString(),
           location: allEvents[2].location || "TBD", 
           status: "upcoming",
-          image: allEvents[2].imageUrl ? `http://localhost:4000${allEvents[2].imageUrl}` : "/community-event.png",
+          image: imageUrl(allEvents[2].imageUrl) || "/community-event.png",
         });
       }
 
@@ -221,7 +222,7 @@ export default function ProfilePage() {
       <div className="px-4 mb-6">
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="w-20 h-20">
-            <AvatarImage src={user?.imageUrl ? `http://localhost:4000${user.imageUrl}` : "/abstract-profile.png"} />
+            <AvatarImage src={imageUrl(user?.imageUrl) || "/abstract-profile.png"} />
             <AvatarFallback className="bg-kaizen-dark-gray text-kaizen-white text-xl">
               {user?.username?.charAt(0).toUpperCase() || "U"}
             </AvatarFallback>

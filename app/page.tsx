@@ -12,6 +12,7 @@ import { PurchaseModal } from "@/components/purchase-modal"
 import { AuthModal } from "@/components/auth-modal"
 import { getEventStatus, isEventCompleted } from "@/lib/eventUtils"
 import { useAuth } from "@/contexts/AuthContext"
+import { apiUrl, imageUrl } from "@/lib/api"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useWallet } from "@/contexts/WalletContext"
@@ -30,7 +31,7 @@ export default function KaizenApp() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const res = await fetch("http://localhost:4000/api/events");
+        const res = await fetch(apiUrl("/api/events"));
         if (!res.ok) throw new Error("Failed to fetch events");
         const data = await res.json();
         setEvents(data);
@@ -76,7 +77,7 @@ export default function KaizenApp() {
         {isAuthenticated && user ? (
           <Link href="/profile" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
             <Avatar className="w-10 h-10">
-              <AvatarImage src={user.imageUrl ? `http://localhost:4000${user.imageUrl}` : "/abstract-profile.png"} />
+              <AvatarImage src={imageUrl(user.imageUrl) || "/abstract-profile.png"} />
               <AvatarFallback className="bg-kaizen-dark-gray text-kaizen-white">
                 {user.username.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -225,7 +226,7 @@ export default function KaizenApp() {
               <Card className="bg-gradient-to-br from-green-600 to-green-800 border-none rounded-3xl overflow-hidden relative p-0 cursor-pointer hover:scale-[1.02] transition-transform">
                 <div className="relative h-64">
                   <img
-                    src={event.imageUrl ? `http://localhost:4000${event.imageUrl}` : "/placeholder.svg"}
+                    src={imageUrl(event.imageUrl) || "/placeholder.svg"}
                     alt={event.title}
                     className="w-full h-full object-cover"
                   />
@@ -483,7 +484,7 @@ export default function KaizenApp() {
         onClose={() => setShowPurchaseModal(false)}
         eventTitle={selectedEvent.title}
         eventPrice={`${selectedEvent.price || "50"} XLM`}
-        eventImage={selectedEvent.imageUrl ? `http://localhost:4000${selectedEvent.imageUrl}` : selectedEvent.imageUrl}
+        eventImage={imageUrl(selectedEvent.imageUrl) || selectedEvent.imageUrl}
         isWalletConnected={isConnected}
         onConnectWallet={() => setShowWalletConnect(true)}
       />

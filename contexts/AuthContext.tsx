@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { apiUrl } from "@/lib/api";
 
 interface User {
   _id: string;
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const fetchUser = async (authToken: string) => {
     try {
-      const response = await fetch("http://localhost:4000/api/users/me", {
+      const response = await fetch(apiUrl("/api/users/me"), {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch("http://localhost:4000/api/login", {
+      const response = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (username: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch("http://localhost:4000/api/register", {
+      const response = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
