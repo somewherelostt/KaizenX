@@ -14,160 +14,117 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AuthModal } from "@/components/auth-modal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useWallet } from "@/contexts/WalletContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("nfts");
-  const [user, setUser] = useState<any>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [signupForm, setSignupForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-  const [error, setError] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [userEvents, setUserEvents] = useState<any[]>([]);
+  const [userNFTs, setUserNFTs] = useState<any[]>([]);
+  const [loadingUserData, setLoadingUserData] = useState(true);
+  const { user, isAuthenticated, logout, isLoading, token } = useAuth();
+  const { balance, isConnected } = useWallet();
 
-  // Check for token on mount
+  // Redirect to home if not authenticated and not loading
   useEffect(() => {
-    const t = localStorage.getItem("token");
-    setToken(t);
-    if (t) fetchProfile(t);
-  }, []);
-
-  // Fetch user profile
-  async function fetchProfile(token: string) {
-    try {
-      // Replace with your backend endpoint for current user
-      const res = await fetch("http://localhost:4000/api/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Not authenticated");
-      const data = await res.json();
-      setUser(data);
-    } catch {
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem("token");
+    if (!isLoading && !isAuthenticated) {
+      setShowAuthModal(true);
     }
-  }
+  }, [isLoading, isAuthenticated]);
 
-  // Login handler
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    try {
-      const res = await fetch("http://localhost:4000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginForm),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
-      setToken(data.token);
-      localStorage.setItem("token", data.token);
-      fetchProfile(data.token);
-    } catch (err: any) {
-      setError(err.message);
+  // Fetch user's events and NFTs when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user && token) {
+      fetchUserData();
     }
-  }
+  }, [isAuthenticated, user, token]);
 
-  // Signup handler
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+  const fetchUserData = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(signupForm),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Signup failed");
+      setLoadingUserData(true);
+      // Fetch events from backend - you can expand this to get user-specific events
+      const eventsRes = await fetch("http://localhost:4000/api/events");
+      const allEvents = await eventsRes.json();
+      
+      // For demo purposes, we'll simulate user's attended events
+      // In a real app, you'd have a user-events relationship in your backend
+      const attendedEvents = allEvents.slice(0, 2).map((event: any) => ({
+        id: event._id,
+        name: event.title,
+        date: new Date(event.date).toLocaleDateString(),
+        location: event.location || "TBD",
+        status: "attended",
+        image: event.imageUrl ? `http://localhost:4000${event.imageUrl}` : "/community-event.png",
+      }));
+
+      // Add a future event
+      if (allEvents.length > 2) {
+        attendedEvents.push({
+          id: allEvents[2]._id,
+          name: allEvents[2].title,
+          date: new Date(allEvents[2].date).toLocaleDateString(),
+          location: allEvents[2].location || "TBD", 
+          status: "upcoming",
+          image: allEvents[2].imageUrl ? `http://localhost:4000${allEvents[2].imageUrl}` : "/community-event.png",
+        });
       }
-      // Auto-login after signup
-      setLoginForm({ email: signupForm.email, password: signupForm.password });
-      await handleLogin(e);
-    } catch (err: any) {
-      setError(err.message);
+
+      setUserEvents(attendedEvents);
+
+      // Generate NFTs based on attended events
+      const generatedNFTs = attendedEvents
+        .filter((event: any) => event.status === "attended")
+        .map((event: any, index: number) => ({
+          id: index + 1,
+          name: `${event.name} POAP`,
+          event: event.name,
+          date: event.date,
+          image: event.image,
+          rarity: index === 0 ? "Legendary" : index === 1 ? "Rare" : "Common",
+          attendees: Math.floor(Math.random() * 2000 + 100).toString(),
+        }));
+
+      setUserNFTs(generatedNFTs);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setUserEvents([]);
+      setUserNFTs([]);
+    } finally {
+      setLoadingUserData(false);
     }
-  }
+  };
 
-  // Logout handler
-  function handleLogout() {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
-    setLoginForm({ email: "", password: "" });
-    setSignupForm({ username: "", email: "", password: "" });
-  }
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
 
-  const nftCollection = [
+  // Use dynamic data or fallback to static data
+  const nftCollection = userNFTs.length > 0 ? userNFTs : [
     {
       id: 1,
-      name: "Blackpink Concert POAP",
-      event: "Blackpink Concert",
-      date: "May 20, 2024",
-      image: "/nft-concert-badge.png",
-      rarity: "Legendary",
-      attendees: "1,234",
-    },
-    {
-      id: 2,
-      name: "Tech Summit 2024",
-      event: "Web3 Tech Summit",
-      date: "March 15, 2024",
-      image: "/nft-tech-summit.png",
-      rarity: "Rare",
-      attendees: "856",
-    },
-    {
-      id: 3,
-      name: "Art Gallery Opening",
-      event: "Modern Art Exhibition",
-      date: "February 8, 2024",
-      image: "/nft-art-gallery.png",
+      name: "Sample POAP",
+      event: "Sample Event",
+      date: "Jan 1, 2024",
+      image: "/placeholder.svg",
       rarity: "Common",
-      attendees: "432",
-    },
-    {
-      id: 4,
-      name: "Music Festival Pass",
-      event: "Summer Music Fest",
-      date: "January 22, 2024",
-      image: "/nft-music-festival.png",
-      rarity: "Epic",
-      attendees: "2,156",
+      attendees: "0",
     },
   ];
 
-  const eventHistory = [
+  const eventHistory = userEvents.length > 0 ? userEvents : [
     {
       id: 1,
-      name: "Blackpink Concert",
-      date: "May 20, 2024",
-      location: "New York",
+      name: "Sample Event",
+      date: "Jan 1, 2024",
+      location: "Sample Location",
       status: "attended",
-      image: "/concert-performer.png",
-    },
-    {
-      id: 2,
-      name: "Web3 Tech Summit",
-      date: "March 15, 2024",
-      location: "San Francisco",
-      status: "attended",
-      image: "/community-event.png",
-    },
-    {
-      id: 3,
-      name: "Comedy Night",
-      date: "June 17, 2024",
-      location: "California",
-      status: "upcoming",
-      image: "/community-event.png",
+      image: "/placeholder.svg",
     },
   ];
 
@@ -183,73 +140,57 @@ export default function ProfilePage() {
         return "text-kaizen-gray bg-kaizen-gray/10 border-kaizen-gray/20";
     }
   };
-  if (!token || !user) {
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-kaizen-black text-kaizen-white">
-        <h1 className="text-2xl font-bold mb-4">Sign In</h1>
-        <form onSubmit={handleLogin} className="space-y-3 w-full max-w-xs">
-          <input
-            className="w-full p-2 rounded bg-kaizen-dark-gray text-kaizen-white"
-            type="email"
-            placeholder="Email"
-            value={loginForm.email}
-            onChange={(e) =>
-              setLoginForm((f) => ({ ...f, email: e.target.value }))
-            }
-            required
-          />
-          <input
-            className="w-full p-2 rounded bg-kaizen-dark-gray text-kaizen-white"
-            type="password"
-            placeholder="Password"
-            value={loginForm.password}
-            onChange={(e) =>
-              setLoginForm((f) => ({ ...f, password: e.target.value }))
-            }
-            required
-          />
-          <Button type="submit" className="w-full">
-            Login
+      <div className="min-h-screen flex items-center justify-center bg-kaizen-black text-kaizen-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-kaizen-yellow mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication modal if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-kaizen-black text-kaizen-white max-w-sm mx-auto relative">
+        <div className="flex items-center justify-between p-4 pt-12">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-kaizen-white hover:bg-kaizen-dark-gray rounded-full"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-        </form>
-        <div className="my-4 text-kaizen-gray">or</div>
-        <h2 className="text-xl font-bold mb-2">Sign Up</h2>
-        <form onSubmit={handleSignup} className="space-y-3 w-full max-w-xs">
-          <input
-            className="w-full p-2 rounded bg-kaizen-dark-gray text-kaizen-white"
-            type="text"
-            placeholder="Username"
-            value={signupForm.username}
-            onChange={(e) =>
-              setSignupForm((f) => ({ ...f, username: e.target.value }))
-            }
-            required
-          />
-          <input
-            className="w-full p-2 rounded bg-kaizen-dark-gray text-kaizen-white"
-            type="email"
-            placeholder="Email"
-            value={signupForm.email}
-            onChange={(e) =>
-              setSignupForm((f) => ({ ...f, email: e.target.value }))
-            }
-            required
-          />
-          <input
-            className="w-full p-2 rounded bg-kaizen-dark-gray text-kaizen-white"
-            type="password"
-            placeholder="Password"
-            value={signupForm.password}
-            onChange={(e) =>
-              setSignupForm((f) => ({ ...f, password: e.target.value }))
-            }
-            required
-          />
-          <Button type="submit" className="w-full">
-            Sign Up
+          <h1 className="text-kaizen-white font-semibold text-lg">Profile</h1>
+          <div></div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center min-h-[50vh] px-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-kaizen-white mb-2">
+              Sign in to view your profile
+            </h2>
+            <p className="text-kaizen-gray">
+              Access your NFT collection and event history
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowAuthModal(true)}
+            className="w-full max-w-xs bg-kaizen-yellow text-kaizen-black hover:bg-kaizen-yellow/90 font-semibold rounded-full h-12"
+          >
+            Sign In / Sign Up
           </Button>
-        </form>
-        {error && <div className="text-red-500 mt-4">{error}</div>}
+        </div>
+
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+        />
       </div>
     );
   }
@@ -269,15 +210,10 @@ export default function ProfilePage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => handleLogout()}
+          onClick={handleLogout}
           className="text-kaizen-white hover:bg-kaizen-dark-gray rounded-full"
         >
-          {/* <button
-            onClick={() => handleLogout()}
-            className="text-kaizen-white hover:bg-kaizen-dark-gray rounded-full"
-          > */}
           <LogOutIcon className="w-5 h-5" />
-          {/* </button> */}
         </Button>
       </div>
 
@@ -285,21 +221,23 @@ export default function ProfilePage() {
       <div className="px-4 mb-6">
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="w-20 h-20">
-            <AvatarImage src="/abstract-profile.png" />
+            <AvatarImage src={user?.imageUrl ? `http://localhost:4000${user.imageUrl}` : "/abstract-profile.png"} />
             <AvatarFallback className="bg-kaizen-dark-gray text-kaizen-white text-xl">
-              CJ
+              {user?.username?.charAt(0).toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <h2 className="text-kaizen-white font-bold text-xl">
-              {user?.username || "Christian Johnson"}
+              {user?.username || "User"}
             </h2>
             <p className="text-kaizen-gray text-sm mb-2">
               Web3 Event Enthusiast
             </p>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-kaizen-gray text-xs">Wallet Connected</span>
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-kaizen-gray text-xs">
+                {isConnected ? "Wallet Connected" : "Wallet Not Connected"}
+              </span>
             </div>
           </div>
           <Button
@@ -319,7 +257,7 @@ export default function ProfilePage() {
               <Trophy className="w-5 h-5 text-kaizen-yellow" />
             </div>
             <p className="text-kaizen-white font-bold text-lg">
-              {nftCollection.length}
+              {loadingUserData ? "..." : nftCollection.length}
             </p>
             <p className="text-kaizen-gray text-xs">NFTs Collected</p>
           </Card>
@@ -328,7 +266,7 @@ export default function ProfilePage() {
               <Calendar className="w-5 h-5 text-kaizen-yellow" />
             </div>
             <p className="text-kaizen-white font-bold text-lg">
-              {eventHistory.filter((e) => e.status === "attended").length}
+              {loadingUserData ? "..." : eventHistory.filter((e) => e.status === "attended").length}
             </p>
             <p className="text-kaizen-gray text-xs">Events Attended</p>
           </Card>
@@ -336,7 +274,9 @@ export default function ProfilePage() {
             <div className="flex items-center justify-center mb-2">
               <Wallet className="w-5 h-5 text-kaizen-yellow" />
             </div>
-            <p className="text-kaizen-white font-bold text-lg">1,234</p>
+            <p className="text-kaizen-white font-bold text-lg">
+              {isConnected ? parseFloat(balance).toFixed(0) : "0"}
+            </p>
             <p className="text-kaizen-gray text-xs">XLM Balance</p>
           </Card>
         </div>

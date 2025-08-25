@@ -179,3 +179,13 @@
 .border-kaizen-dark-gray {
   border-color: var(--kaizen-dark-gray);
 }
+
+.hide-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

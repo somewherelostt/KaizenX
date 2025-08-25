@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { BottomNav } from "@/components/bottom-nav"
 import { WalletProvider } from "@/contexts/WalletContext"
+import { AuthProvider } from "@/contexts/AuthContext"
 
 const urbanist = Urbanist({
   subsets: ["latin"],
@@ -32,11 +33,13 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <WalletProvider>
-            {children}
-            {/* Bottom Navigation Bar */}
-            <BottomNav />
-          </WalletProvider>
+          <AuthProvider>
+            <WalletProvider>
+              {children}
+              {/* Bottom Navigation Bar */}
+              <BottomNav />
+            </WalletProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

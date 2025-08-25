@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react"
-import { Search, Calendar, Filter, Heart, MapPin, Clock } from "lucide-react"
+import { Search, Calendar, Filter, Heart, MapPin, Clock, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -9,7 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { WalletConnect } from "@/components/wallet-connect"
 import { WalletStatus } from "@/components/wallet-status"
 import { PurchaseModal } from "@/components/purchase-modal"
+import { AuthModal } from "@/components/auth-modal"
 import { getEventStatus, isEventCompleted } from "@/lib/eventUtils"
+import { useAuth } from "@/contexts/AuthContext"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useWallet } from "@/contexts/WalletContext"
@@ -17,8 +19,10 @@ import { useWallet } from "@/contexts/WalletContext"
 export default function KaizenApp() {
   const [selectedCategory, setSelectedCategory] = useState("Live shows");
   const [showWalletConnect, setShowWalletConnect] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const { isConnected } = useWallet()
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,18 +73,37 @@ export default function KaizenApp() {
     <div className="min-h-screen bg-kaizen-black text-kaizen-white max-w-sm mx-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 pt-12">
-        <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="/abstract-profile.png" />
-            <AvatarFallback className="bg-kaizen-dark-gray text-kaizen-white">
-              CJ
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-kaizen-gray text-sm">Welcome Back</p>
-            <p className="text-kaizen-white font-semibold">Christian Johnson</p>
+        {isAuthenticated && user ? (
+          <Link href="/profile" className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+            <Avatar className="w-10 h-10">
+              <AvatarImage src={user.imageUrl ? `http://localhost:4000${user.imageUrl}` : "/abstract-profile.png"} />
+              <AvatarFallback className="bg-kaizen-dark-gray text-kaizen-white">
+                {user.username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-kaizen-gray text-sm">Welcome Back</p>
+              <p className="text-kaizen-white font-semibold">{user.username}</p>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10">
+              <AvatarFallback className="bg-kaizen-dark-gray text-kaizen-white">
+                <User className="w-5 h-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-kaizen-gray text-sm">Guest User</p>
+              <Button
+                onClick={() => setShowAuthModal(true)}
+                className="text-kaizen-white font-semibold p-0 h-auto bg-transparent hover:bg-transparent hover:text-kaizen-yellow text-left"
+              >
+                Sign In / Sign Up
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex items-center gap-2">
           <WalletStatus
             onConnect={() => setShowWalletConnect(true)}
@@ -448,6 +471,11 @@ export default function KaizenApp() {
       <WalletConnect
         isOpen={showWalletConnect}
         onClose={() => setShowWalletConnect(false)}
+      />
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
       />
 
       <PurchaseModal
