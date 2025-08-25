@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { ArrowLeft, Info, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { ArrowLeft, Info, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function CalendarPage() {
-  const router = useRouter()
-  const [selectedDate, setSelectedDate] = useState(14)
-  const [events, setEvents] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState(14);
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const dates = [
     { date: 12, day: "Mon" },
@@ -20,24 +20,24 @@ export default function CalendarPage() {
     { date: 15, day: "Thu" },
     { date: 16, day: "Fri" },
     { date: 17, day: "Sat" },
-  ]
+  ];
 
   // Fetch events from backend API
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const res = await fetch("/api/events")
-        if (!res.ok) throw new Error("Failed to fetch events")
-        const data = await res.json()
-        setEvents(data)
+        const res = await fetch("/api/events");
+        if (!res.ok) throw new Error("Failed to fetch events");
+        const data = await res.json();
+        setEvents(data);
       } catch (err) {
-        setEvents([])
+        setEvents([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    fetchEvents()
-  }, [])
+    fetchEvents();
+  }, []);
 
   return (
     <div className="min-h-screen bg-kaizen-black text-kaizen-white max-w-sm mx-auto relative">
@@ -51,8 +51,14 @@ export default function CalendarPage() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-kaizen-white font-semibold text-lg">Upcoming Event</h1>
-        <Button variant="ghost" size="icon" className="text-kaizen-white hover:bg-kaizen-dark-gray rounded-full">
+        <h1 className="text-kaizen-white font-semibold text-lg">
+          Upcoming Event
+        </h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-kaizen-white hover:bg-kaizen-dark-gray rounded-full"
+        >
           <Info className="w-5 h-5" />
         </Button>
       </div>
@@ -66,7 +72,11 @@ export default function CalendarPage() {
       <div className="px-4 mb-6 hide-scrollbar" style={{ overflow: "hidden" }}>
         <div
           className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar"
-          style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}
+          style={{
+            WebkitOverflowScrolling: "touch",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
         >
           {dates.map((item) => (
             <button
@@ -88,9 +98,13 @@ export default function CalendarPage() {
       {/* Events List */}
       <div className="px-4 pb-20">
         {loading ? (
-          <div className="text-center py-8 text-kaizen-gray">Loading events...</div>
+          <div className="text-center py-8 text-kaizen-gray">
+            Loading events...
+          </div>
         ) : events.length === 0 ? (
-          <div className="text-center py-8 text-kaizen-gray">No events found.</div>
+          <div className="text-center py-8 text-kaizen-gray">
+            No events found.
+          </div>
         ) : (
           <div className="space-y-4">
             {events.map((event) => (
@@ -102,7 +116,7 @@ export default function CalendarPage() {
                   {/* Event Image */}
                   <div className="flex-shrink-0">
                     <img
-                      src={event.image || "/placeholder.svg"}
+                      src={event.imageUrl ? event.imageUrl : "/placeholder.svg"}
                       alt={event.title}
                       className="w-12 h-12 rounded-xl object-cover"
                     />
@@ -110,16 +124,24 @@ export default function CalendarPage() {
 
                   {/* Event Details */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-kaizen-white font-semibold text-sm truncate">{event.title}</h3>
-                    <p className="text-kaizen-white text-sm truncate">{event.subtitle}</p>
+                    <h3 className="text-kaizen-white font-semibold text-sm truncate">
+                      {event.title}
+                    </h3>
+                    <p className="text-kaizen-white text-sm truncate">
+                      {event.subtitle}
+                    </p>
                     <div className="flex items-center gap-4 mt-1">
                       <div className="flex items-center gap-1">
                         <div className="w-3 h-3 rounded-full bg-kaizen-yellow"></div>
-                        <span className="text-kaizen-gray text-xs">{event.time}</span>
+                        <span className="text-kaizen-gray text-xs">
+                          {event.time}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <div className="w-3 h-3 rounded-full bg-kaizen-gray"></div>
-                        <span className="text-kaizen-gray text-xs">{event.location}</span>
+                        <span className="text-kaizen-gray text-xs">
+                          {event.location}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -128,20 +150,33 @@ export default function CalendarPage() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="flex items-center gap-1">
                       <div className="flex -space-x-1">
-                        {(event.participants || []).map((participant: string, index: number) => (
-                          <Avatar key={index} className="w-6 h-6 border border-kaizen-black">
-                            <AvatarImage src={participant || "/placeholder.svg"} />
-                            <AvatarFallback className="bg-kaizen-yellow text-kaizen-black text-xs">
-                              {index + 1}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
+                        {(event.participants || []).map(
+                          (participant: string, index: number) => (
+                            <Avatar
+                              key={index}
+                              className="w-6 h-6 border border-kaizen-black"
+                            >
+                              <AvatarImage
+                                src={participant || "/placeholder.svg"}
+                              />
+                              <AvatarFallback className="bg-kaizen-yellow text-kaizen-black text-xs">
+                                {index + 1}
+                              </AvatarFallback>
+                            </Avatar>
+                          )
+                        )}
                         <div className="w-6 h-6 bg-kaizen-yellow rounded-full flex items-center justify-center border border-kaizen-black">
-                          <span className="text-kaizen-black text-xs font-bold">{event.participantCount}</span>
+                          <span className="text-kaizen-black text-xs font-bold">
+                            {event.participantCount}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-kaizen-white hover:bg-kaizen-gray/20 w-8 h-8">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-kaizen-white hover:bg-kaizen-gray/20 w-8 h-8"
+                    >
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -152,5 +187,5 @@ export default function CalendarPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
