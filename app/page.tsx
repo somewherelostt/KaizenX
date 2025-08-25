@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react"
-import { Search, Calendar, Filter, Heart, MapPin } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Search, Calendar, Filter, Heart, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { WalletConnect } from "@/components/wallet-connect"
 import { WalletStatus } from "@/components/wallet-status"
 import { PurchaseModal } from "@/components/purchase-modal"
+import { getEventStatus, isEventCompleted } from "@/lib/eventUtils"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useWallet } from "@/contexts/WalletContext"
@@ -19,9 +20,49 @@ export default function KaizenApp() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const { isConnected } = useWallet()
   const router = useRouter()
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const res = await fetch("http://localhost:4000/api/events");
+        if (!res.ok) throw new Error("Failed to fetch events");
+        const data = await res.json();
+        setEvents(data);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchEvents();
+  }, []);
+
+  // Filter events by selectedCategory and exclude completed events
+  const featuredEvents = events.filter(
+    (event) => {
+      // First filter by category
+      const matchesCategory = selectedCategory === "all" ||
+        (event.category && event.category === selectedCategory);
+      
+      // Then exclude completed events
+      const isNotCompleted = !isEventCompleted(event.date);
+      
+      return matchesCategory && isNotCompleted;
+    }
+  );
 
   const handlePurchaseClick = () => {
     setShowPurchaseModal(true)
+  }
+
+  // Get the selected event for purchase modal
+  const selectedEvent = featuredEvents[0] || {
+    title: "Blackpink Concert",
+    price: "50",
+    imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-zY5f7bxQlrK3C1CkraP1yzFTbVqxtc.png"
   }
 
   return (
@@ -147,7 +188,120 @@ export default function KaizenApp() {
 
       {/* Featured Event (filtered by category) */}
       <div className="px-4 mb-6">
-        {(selectedCategory === "Live shows" || selectedCategory === "all") && (
+        {loading ? (
+          <div className="text-center py-8 text-kaizen-gray">
+            Loading events...
+          </div>
+        ) : featuredEvents.length === 0 ? (
+          <div className="text-center py-8 text-kaizen-gray">
+            {selectedCategory === "all" ? "No events found." : `No ${selectedCategory} events found.`}
+          </div>
+        ) : (
+          featuredEvents.map((event) => (
+            <Link key={event._id} href={`/event/${event._id}`} className="block mb-4">
+              <Card className="bg-gradient-to-br from-green-600 to-green-800 border-none rounded-3xl overflow-hidden relative p-0 cursor-pointer hover:scale-[1.02] transition-transform">
+                <div className="relative h-64">
+                  <img
+                    src={event.imageUrl ? `http://localhost:4000${event.imageUrl}` : "/placeholder.svg"}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                  {/* Date Badge */}
+                  <div className="absolute top-4 left-4 bg-kaizen-white text-kaizen-black px-3 py-1 rounded-lg text-sm font-medium">
+                    {event.date ? (
+                      <>
+                        {new Date(event.date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                        <br />
+                        {new Date(event.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                        })}
+                      </>
+                    ) : (
+                      "TBD"
+                    )}
+                  </div>
+                  {/* Heart Icon */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-4 right-4 text-white hover:bg-white/20"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <Heart className="w-5 h-5" />
+                  </Button>
+                  {/* Event Details */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="text-white font-bold text-xl mb-2">
+                      {event.title}
+                    </h3>
+                    <div className="flex items-center gap-1 mb-2">
+                      <MapPin className="w-4 h-4 text-white/80" />
+                      <p className="text-white/80 text-sm">{event.location || "Location TBD"}</p>
+                    </div>
+                    {event.date && (
+                      <div className="flex items-center gap-1 mb-4">
+                        <Clock className="w-4 h-4 text-white/80" />
+                        <p className="text-white/80 text-sm">
+                          {new Date(event.date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })} at{" "}
+                          {new Date(event.date).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                          <Avatar className="w-8 h-8 border-2 border-white">
+                            <AvatarImage src="/conference-attendee-one.png" />
+                            <AvatarFallback className="bg-kaizen-yellow text-kaizen-black text-xs">A</AvatarFallback>
+                          </Avatar>
+                          <Avatar className="w-8 h-8 border-2 border-white">
+                            <AvatarImage src="/conference-attendee-two.png" />
+                            <AvatarFallback className="bg-kaizen-dark-gray text-kaizen-white text-xs">B</AvatarFallback>
+                          </Avatar>
+                          <Avatar className="w-8 h-8 border-2 border-white">
+                            <AvatarFallback className="bg-kaizen-yellow text-kaizen-black text-xs">1.2k</AvatarFallback>
+                          </Avatar>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-bold text-2xl">
+                          {event.price ? `${event.price} XLM` : "Free"}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!getEventStatus(event.date).isCompleted) {
+                          handlePurchaseClick();
+                        }
+                      }}
+                      disabled={getEventStatus(event.date).isCompleted}
+                      className={`w-full font-semibold rounded-full h-12 ${getEventStatus(event.date).className}`}
+                    >
+                      {getEventStatus(event.date).text}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))
+        )}
+
+        {/* Fallback static content when no dynamic events */}
+        {!loading && events.length === 0 && (selectedCategory === "Live shows" || selectedCategory === "all") && (
           <Link href="/event/1">
             <Card className="bg-gradient-to-br from-green-600 to-green-800 border-none rounded-3xl overflow-hidden relative p-0 cursor-pointer hover:scale-[1.02] transition-transform">
               <div className="relative h-64">
@@ -189,7 +343,7 @@ export default function KaizenApp() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-bold text-2xl">$40.230</p>
+                      <p className="text-white font-bold text-2xl">50 XLM</p>
                     </div>
                   </div>
                   <Button
@@ -206,14 +360,16 @@ export default function KaizenApp() {
             </Card>
           </Link>
         )}
-        {selectedCategory === "Tourism" && (
+
+        {selectedCategory === "Tourism" && events.length === 0 && (
           <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-none rounded-3xl overflow-hidden relative p-0 cursor-pointer hover:scale-[1.02] transition-transform">
             <div className="relative h-64 flex items-center justify-center">
               <span className="text-white text-xl">No tourism events yet.</span>
             </div>
           </Card>
         )}
-        {selectedCategory === "Fever Origin" && (
+
+        {selectedCategory === "Fever Origin" && events.length === 0 && (
           <Card className="bg-gradient-to-br from-purple-600 to-purple-800 border-none rounded-3xl overflow-hidden relative p-0 cursor-pointer hover:scale-[1.02] transition-transform">
             <div className="relative h-64 flex items-center justify-center">
               <span className="text-white text-xl">No Fever Origin events yet.</span>
@@ -297,9 +453,9 @@ export default function KaizenApp() {
       <PurchaseModal
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
-        eventTitle="Blackpink Concert"
-        eventPrice="50 XLM"
-        eventImage="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-zY5f7bxQlrK3C1CkraP1yzFTbVqxtc.png"
+        eventTitle={selectedEvent.title}
+        eventPrice={`${selectedEvent.price || "50"} XLM`}
+        eventImage={selectedEvent.imageUrl ? `http://localhost:4000${selectedEvent.imageUrl}` : selectedEvent.imageUrl}
         isWalletConnected={isConnected}
         onConnectWallet={() => setShowWalletConnect(true)}
       />

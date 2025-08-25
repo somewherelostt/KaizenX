@@ -1,36 +1,76 @@
 "use client";
 
-import { ArrowLeft, Info, ChevronRight } from "lucide-react";
+import { ArrowLeft, Info, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getEventStatus } from "@/lib/eventUtils";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export default function CalendarPage() {
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState(14);
+  const [selectedDate, setSelectedDate] = useState(new Date().getDate());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const dates = [
-    { date: 12, day: "Mon" },
-    { date: 13, day: "Tue" },
-    { date: 14, day: "Wed" },
-    { date: 15, day: "Thu" },
-    { date: 16, day: "Fri" },
-    { date: 17, day: "Sat" },
-  ];
+  // Generate dates for the current week
+  const generateWeekDates = () => {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - currentDay + 1); // Start from Monday
+
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      dates.push({
+        date: date.getDate(),
+        day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        fullDate: new Date(date),
+        month: date.getMonth(),
+        year: date.getFullYear()
+      });
+    }
+    return dates;
+  };
+
+  const dates = generateWeekDates();
+  const monthName = new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long' });
+
+  // Filter events for the selected date
+  const getEventsForSelectedDate = () => {
+    if (!events.length) return [];
+    
+    const selectedFullDate = dates.find(d => d.date === selectedDate)?.fullDate;
+    if (!selectedFullDate) return events; // Show all events if no specific date selected
+    
+    return events.filter(event => {
+      if (!event.date) return false;
+      const eventDate = new Date(event.date);
+      return (
+        eventDate.getDate() === selectedFullDate.getDate() &&
+        eventDate.getMonth() === selectedFullDate.getMonth() &&
+        eventDate.getFullYear() === selectedFullDate.getFullYear()
+      );
+    });
+  };
+
+  const filteredEvents = getEventsForSelectedDate();
 
   // Fetch events from backend API
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const res = await fetch("/api/events");
+        const res = await fetch("http://localhost:4000/api/events");
         if (!res.ok) throw new Error("Failed to fetch events");
         const data = await res.json();
         setEvents(data);
       } catch (err) {
+        console.error("Failed to fetch events:", err);
         setEvents([]);
       } finally {
         setLoading(false);
@@ -65,7 +105,7 @@ export default function CalendarPage() {
 
       {/* Month */}
       <div className="px-4 mb-6">
-        <h2 className="text-kaizen-white font-semibold text-2xl">January</h2>
+        <h2 className="text-kaizen-white font-semibold text-2xl">{monthName} {currentYear}</h2>
       </div>
 
       {/* Date Selector */}
@@ -80,7 +120,7 @@ export default function CalendarPage() {
         >
           {dates.map((item) => (
             <button
-              key={item.date}
+              key={`${item.date}-${item.month}-${item.year}`}
               onClick={() => setSelectedDate(item.date)}
               className={`flex-shrink-0 flex flex-col items-center justify-center w-12 h-16 rounded-2xl transition-colors ${
                 selectedDate === item.date
@@ -101,22 +141,26 @@ export default function CalendarPage() {
           <div className="text-center py-8 text-kaizen-gray">
             Loading events...
           </div>
-        ) : events.length === 0 ? (
+        ) : filteredEvents.length === 0 ? (
           <div className="text-center py-8 text-kaizen-gray">
-            No events found.
+            {selectedDate ? `No events found for ${monthName} ${selectedDate}.` : "No events found."}
           </div>
         ) : (
           <div className="space-y-4">
-            {events.map((event) => (
+            <h3 className="text-kaizen-white font-medium text-sm">
+              {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} for {monthName} {selectedDate}
+            </h3>
+            {filteredEvents.map((event, index) => (
               <Card
-                key={event.id}
+                key={event._id || index}
                 className="bg-kaizen-dark-gray border-none rounded-2xl p-4 hover:bg-kaizen-gray/20 transition-colors cursor-pointer"
+                onClick={() => router.push(`/event/${event._id}`)}
               >
                 <div className="flex items-center gap-3">
                   {/* Event Image */}
                   <div className="flex-shrink-0">
                     <img
-                      src={event.imageUrl ? event.imageUrl : "/placeholder.svg"}
+                      src={event.imageUrl ? `http://localhost:4000${event.imageUrl}` : "/placeholder.svg"}
                       alt={event.title}
                       className="w-12 h-12 rounded-xl object-cover"
                     />
@@ -127,50 +171,63 @@ export default function CalendarPage() {
                     <h3 className="text-kaizen-white font-semibold text-sm truncate">
                       {event.title}
                     </h3>
-                    <p className="text-kaizen-white text-sm truncate">
-                      {event.subtitle}
+                    <p className="text-kaizen-gray text-sm truncate">
+                      {event.description || "No description available"}
                     </p>
                     <div className="flex items-center gap-4 mt-1">
-                      <div className="flex items-center gap-1">
-                        <div className="w-3 h-3 rounded-full bg-kaizen-yellow"></div>
-                        <span className="text-kaizen-gray text-xs">
-                          {event.time}
-                        </span>
-                      </div>
+                      {event.date && (
+                        <div className="flex items-center gap-1">
+                          <div className={`w-3 h-3 rounded-full ${getEventStatus(event.date).isCompleted ? 'bg-kaizen-gray' : 'bg-kaizen-yellow'}`}></div>
+                          <span className="text-kaizen-gray text-xs">
+                            {new Date(event.date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })} at {new Date(event.date).toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1">
                         <div className="w-3 h-3 rounded-full bg-kaizen-gray"></div>
                         <span className="text-kaizen-gray text-xs">
-                          {event.location}
+                          {event.location || "Location TBD"}
                         </span>
                       </div>
                     </div>
+                    {event.category && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="inline-block bg-kaizen-yellow/20 text-kaizen-yellow px-2 py-1 rounded-full text-xs">
+                          {event.category}
+                        </span>
+                        {getEventStatus(event.date).isCompleted && (
+                          <span className="inline-block bg-kaizen-gray text-kaizen-white px-2 py-1 rounded-full text-xs">
+                            Event Completed
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {!event.category && getEventStatus(event.date).isCompleted && (
+                      <div className="mt-2">
+                        <span className="inline-block bg-kaizen-gray text-kaizen-white px-2 py-1 rounded-full text-xs">
+                          Event Completed
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Participants and Arrow */}
+                  {/* Price and Arrow */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="flex items-center gap-1">
-                      <div className="flex -space-x-1">
-                        {(event.participants || []).map(
-                          (participant: string, index: number) => (
-                            <Avatar
-                              key={index}
-                              className="w-6 h-6 border border-kaizen-black"
-                            >
-                              <AvatarImage
-                                src={participant || "/placeholder.svg"}
-                              />
-                              <AvatarFallback className="bg-kaizen-yellow text-kaizen-black text-xs">
-                                {index + 1}
-                              </AvatarFallback>
-                            </Avatar>
-                          )
-                        )}
-                        <div className="w-6 h-6 bg-kaizen-yellow rounded-full flex items-center justify-center border border-kaizen-black">
-                          <span className="text-kaizen-black text-xs font-bold">
-                            {event.participantCount}
-                          </span>
-                        </div>
-                      </div>
+                    <div className="text-right">
+                      <p className="text-kaizen-white font-semibold text-sm">
+                        {event.price ? `${event.price} XLM` : "Free"}
+                      </p>
+                      {event.seats && (
+                        <p className="text-kaizen-gray text-xs">
+                          {event.seats} seats
+                        </p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -185,6 +242,16 @@ export default function CalendarPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Floating Action Button */}
+      <div className="fixed bottom-24 right-4">
+        <Button
+          onClick={() => router.push("/event/create")}
+          className="w-14 h-14 bg-kaizen-yellow text-kaizen-black hover:bg-kaizen-yellow/90 rounded-full shadow-lg flex items-center justify-center"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
       </div>
     </div>
   );
