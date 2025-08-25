@@ -150,18 +150,35 @@ app.delete("/api/users/:id", async (req, res) => {
 // Create Event (with image upload, protected)
 app.post("/api/events", upload.single("image"), async (req, res) => {
   try {
-    const eventData = req.body;
+    const eventData = {
+      title: req.body.title,
+      description: req.body.description,
+      date: new Date(req.body.date),
+      location: req.body.location,
+      price: parseFloat(req.body.price),
+      seats: parseInt(req.body.seats),
+      category: req.body.category || "Live shows",
+    };
+
+    // Validate date is in the future
+    if (eventData.date <= new Date()) {
+      return res.status(400).json({ error: "Event date must be in the future" });
+    }
+
     if (req.file) {
       eventData.imageUrl = `/uploads/${req.file.filename}`;
     }
-    eventData.date = new Date();
-    eventData.createdBy = req.user;
+
+    if (req.body.user) {
+      eventData.createdBy = req.body.user;
+    }
+
     const event = new Event(eventData);
     await event.save();
     res.status(201).json(event);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.log(message);
+    console.log("Event creation error:", message);
     res.status(400).json({ error: message });
   }
 });
@@ -216,7 +233,9 @@ app.delete("/api/events/:id", async (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(`${process.env.DB_URL}`);
+mongoose.connect(`${process.env.DB_URL}`, {
+  ssl: true,
+});
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", function () {
