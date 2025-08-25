@@ -247,7 +247,18 @@ app.delete("/api/events/:id", async (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(`${process.env.DB_URL}`, {
+const dbUrl = process.env.DB_URL || process.env.DATABASE_URL;
+console.log("DB_URL environment variable:", process.env.DB_URL ? "Set" : "NOT SET");
+console.log("DATABASE_URL environment variable:", process.env.DATABASE_URL ? "Set" : "NOT SET");
+console.log("Available environment variables:", Object.keys(process.env).filter(key => key.includes('DB') || key.includes('DATABASE')));
+
+if (!dbUrl) {
+  console.error("❌ Neither DB_URL nor DATABASE_URL environment variable is set!");
+  console.error("Make sure to set DB_URL in Railway Variables tab with your MongoDB connection string");
+  process.exit(1);
+}
+
+mongoose.connect(dbUrl, {
   ssl: true,
 });
 const db = mongoose.connection;
