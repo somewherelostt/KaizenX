@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PurchaseModal } from "@/components/purchase-modal";
+import { getEventStatus, formatEventDate, formatEventTime } from "@/lib/eventUtils";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -18,6 +19,8 @@ export default function EventDetailPage({
   const [walletConnected] = useState(false);
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const eventStatus = event ? getEventStatus(event.date) : null;
 
   useEffect(() => {
     async function fetchEvent() {
@@ -93,7 +96,7 @@ export default function EventDetailPage({
           </div>
           <div className="text-right ml-4">
             <p className="text-kaizen-white font-bold text-3xl">
-              {event.price ? `$${event.price}` : ""}
+              {event.price ? `${event.price} XLM` : "Free"}
             </p>
             <p className="text-kaizen-gray text-sm">
               {event.seats ? `${event.seats} seats available` : ""}
@@ -102,17 +105,29 @@ export default function EventDetailPage({
         </div>
 
         {/* Date and Location */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-kaizen-gray" />
-            <span className="text-kaizen-gray text-sm">
-              {event.date ? new Date(event.date).toLocaleDateString() : ""}
-            </span>
-          </div>
+        <div className="space-y-3 mb-6">
+          {event.date && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-kaizen-gray" />
+              <span className="text-kaizen-gray text-sm">
+                {formatEventDate(event.date)} at {formatEventTime(event.date)}
+              </span>
+              {eventStatus?.isCompleted && (
+                <span className="ml-2 bg-kaizen-gray text-kaizen-white px-2 py-1 rounded-full text-xs">
+                  Completed
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-kaizen-gray" />
             <span className="text-kaizen-gray text-sm">{event.location}</span>
           </div>
+          {event.category && (
+            <div className="inline-block bg-kaizen-yellow/20 text-kaizen-yellow px-2 py-1 rounded-full text-xs">
+              {event.category}
+            </div>
+          )}
         </div>
 
         {/* About Event */}
@@ -194,10 +209,17 @@ export default function EventDetailPage({
             <Heart className="w-5 h-5" />
           </Button>
           <Button
-            onClick={() => setShowPurchaseModal(true)}
-            className="flex-1 bg-kaizen-yellow text-kaizen-black hover:bg-kaizen-yellow/90 font-semibold rounded-full h-12"
+            onClick={() => {
+              if (!eventStatus?.isCompleted) {
+                setShowPurchaseModal(true);
+              }
+            }}
+            disabled={eventStatus?.isCompleted}
+            className={`flex-1 font-semibold rounded-full h-12 ${
+              eventStatus?.className || "bg-kaizen-yellow text-kaizen-black hover:bg-kaizen-yellow/90"
+            }`}
           >
-            Buy Ticket
+            {eventStatus?.text || "Buy Ticket"}
           </Button>
         </div>
       </div>
@@ -207,7 +229,7 @@ export default function EventDetailPage({
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
         eventTitle={event.title}
-        eventPrice={event.price ? `$${event.price}` : ""}
+        eventPrice={event.price ? `${event.price} XLM` : "Free"}
         eventImage={event.imageUrl || "/placeholder.svg"}
         isWalletConnected={walletConnected}
         onConnectWallet={() => {}}
