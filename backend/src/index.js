@@ -194,6 +194,20 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
+// Search Events by name
+app.get("/api/events/search/:query", async (req, res) => {
+  try {
+    const { query } = req.params;
+    const events = await Event.find({
+      title: { $regex: query, $options: 'i' } // Case-insensitive search
+    }).populate("createdBy");
+    res.json(events);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    res.status(500).json({ error: message });
+  }
+});
+
 // Get Event by ID
 app.get("/api/events/:id", async (req, res) => {
   try {
