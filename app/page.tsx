@@ -38,7 +38,7 @@ export default function KaizenApp() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const res = await fetch("/api/events");
+        const res = await fetch("http://localhost:4000/api/events");
         if (!res.ok) throw new Error("Failed to fetch events");
         const data = await res.json();
         setEvents(data);

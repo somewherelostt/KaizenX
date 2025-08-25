@@ -9,6 +9,7 @@ import {
   Wallet,
   ExternalLink,
   LogOutIcon,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -100,6 +101,8 @@ export default function ProfilePage() {
     setUser(null);
     setToken(null);
     localStorage.removeItem("token");
+    setLoginForm({ email: "", password: "" });
+    setSignupForm({ username: "", email: "", password: "" });
   }
 
   const nftCollection = [
@@ -289,7 +292,7 @@ export default function ProfilePage() {
           </Avatar>
           <div className="flex-1">
             <h2 className="text-kaizen-white font-bold text-xl">
-              Christian Johnson
+              {user?.username || "Christian Johnson"}
             </h2>
             <p className="text-kaizen-gray text-sm mb-2">
               Web3 Event Enthusiast
@@ -302,9 +305,10 @@ export default function ProfilePage() {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => router.push("/event/create")}
             className="text-kaizen-white hover:bg-kaizen-dark-gray rounded-full"
           >
-            <Share className="w-5 h-5" />
+            <Plus className="w-5 h-5" />
           </Button>
         </div>
 

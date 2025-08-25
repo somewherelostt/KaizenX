@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,22 @@ export default function CreateEventPage() {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  type User = { _id: string; [key: string]: any };
+  const [user, setUser] = useState<User | null>(null);
+  const fetchUser = async () => {
+    const res = await fetch("http://localhost:4000/api/users/me", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setUser(data);
+    }
+  };
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   // TODO: Integrate wallet and Stellar transaction
   // For now, just submit to backend
@@ -40,6 +56,7 @@ export default function CreateEventPage() {
       // Example: await sendStellarTransaction(form)
 
       // Submit event to backend with image
+      fetchUser();
       const formData = new FormData();
       formData.append("title", form.title);
       formData.append("subtitle", form.subtitle);
@@ -48,11 +65,13 @@ export default function CreateEventPage() {
 
       formData.append("price", form.price);
       formData.append("seats", form.seats);
+      formData.append("user", user?._id || "");
       if (image) formData.append("image", image);
 
-      const res = await fetch("/api/events", {
+      const res = await fetch("http://localhost:4000/api/events", {
         method: "POST",
         // headers: { "Content-Type": "multipart/form-data" }, // Let browser set this
+
         body: formData,
       });
       if (!res.ok) throw new Error("Failed to create event");

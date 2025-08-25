@@ -22,7 +22,9 @@ export default function EventDetailPage({
   useEffect(() => {
     async function fetchEvent() {
       try {
-        const res = await fetch(`/api/events/${params.id}`);
+        const res = await fetch(
+          `http://localhost:4000/api/events/${params.id}`
+        );
         if (!res.ok) throw new Error("Failed to fetch event");
         const data = await res.json();
         setEvent(data);
@@ -49,7 +51,13 @@ export default function EventDetailPage({
       {/* Hero Image */}
       <div className="relative h-80 overflow-hidden">
         <img
-          src={event.imageUrl || "/placeholder.svg"}
+          src={
+            event.imageUrl
+              ? event.imageUrl.startsWith("/uploads/")
+                ? `http://localhost:4000${event.imageUrl}`
+                : event.imageUrl
+              : "/placeholder.svg"
+          }
           alt={event.title}
           className="w-full h-full object-cover"
         />

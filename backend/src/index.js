@@ -148,26 +148,23 @@ app.delete("/api/users/:id", async (req, res) => {
 
 // --- EVENT CRUD ---
 // Create Event (with image upload, protected)
-app.post(
-  "/api/events",
-  authMiddleware,
-  upload.single("image"),
-  async (req, res) => {
-    try {
-      const eventData = req.body;
-      if (req.file) {
-        eventData.imageUrl = `/uploads/${req.file.filename}`;
-      }
-      eventData.createdBy = req.user.id;
-      const event = new Event(eventData);
-      await event.save();
-      res.status(201).json(event);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      res.status(400).json({ error: message });
+app.post("/api/events", upload.single("image"), async (req, res) => {
+  try {
+    const eventData = req.body;
+    if (req.file) {
+      eventData.imageUrl = `/uploads/${req.file.filename}`;
     }
+    eventData.date = new Date();
+    eventData.createdBy = req.user;
+    const event = new Event(eventData);
+    await event.save();
+    res.status(201).json(event);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.log(message);
+    res.status(400).json({ error: message });
   }
-);
+});
 
 // Get all Events
 app.get("/api/events", async (req, res) => {
