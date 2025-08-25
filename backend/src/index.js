@@ -8,7 +8,17 @@ import Event from "./models/Event.js";
 import { register, login, authMiddleware } from "./auth.js";
 import upload from "./upload.js";
 import path from "path";
-dotenv.config();
+import { fileURLToPath } from 'url';
+
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configure dotenv with explicit path and debug
+dotenv.config({ 
+  path: path.join(__dirname, '..', '.env'),
+  debug: process.env.NODE_ENV !== 'production'
+});
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -248,13 +258,28 @@ app.delete("/api/events/:id", async (req, res) => {
 
 // MongoDB connection
 const dbUrl = process.env.DB_URL || process.env.DATABASE_URL;
+console.log("🔍 Environment check:");
+console.log("NODE_ENV:", process.env.NODE_ENV || "not set");
 console.log("DB_URL environment variable:", process.env.DB_URL ? "Set" : "NOT SET");
 console.log("DATABASE_URL environment variable:", process.env.DATABASE_URL ? "Set" : "NOT SET");
 console.log("Available environment variables:", Object.keys(process.env).filter(key => key.includes('DB') || key.includes('DATABASE')));
 
 if (!dbUrl) {
   console.error("❌ Neither DB_URL nor DATABASE_URL environment variable is set!");
-  console.error("Make sure to set DB_URL in Railway Variables tab with your MongoDB connection string");
+  console.error("🔧 For Railway deployment: Set DB_URL in Railway Variables tab");
+  console.error("🔧 For local development: Ensure .env file exists with DB_URL");
+  console.error("📁 Current working directory:", process.cwd());
+  console.error("📁 __dirname:", __dirname);
+  process.exit(1);
+}
+
+console.log("✅ Database URL found, attempting connection...");
+console.log("🔒 Connection string preview:", dbUrl.substring(0, 20) + "...");
+
+if (!dbUrl.startsWith('mongodb://') && !dbUrl.startsWith('mongodb+srv://')) {
+  console.error("❌ Invalid MongoDB connection string format!");
+  console.error("Expected format: mongodb:// or mongodb+srv://");
+  console.error("Received:", dbUrl);
   process.exit(1);
 }
 
