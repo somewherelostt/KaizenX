@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react"
-import { Search, Calendar, Home, User, Filter, Heart, MapPin } from "lucide-react"
+import { Search, Calendar, Filter, Heart, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -11,42 +11,14 @@ import { WalletStatus } from "@/components/wallet-status"
 import { PurchaseModal } from "@/components/purchase-modal"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useWallet } from "@/contexts/WalletContext"
 
 export default function KaizenApp() {
-  const [activeTab, setActiveTab] = useState("home");
   const [selectedCategory, setSelectedCategory] = useState("Live shows");
   const [showWalletConnect, setShowWalletConnect] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletInfo, setWalletInfo] = useState({
-    name: "",
-    address: "",
-    balance: "0",
-  })
+  const { isConnected } = useWallet()
   const router = useRouter()
-
-  const handleTabClick = (tab: string) => {
-    setActiveTab(tab);
-    if (tab === "calendar") {
-      router.push("/calendar");
-    } else if (tab === "profile") {
-      router.push("/profile");
-    }
-  };
-
-  const handleWalletConnect = (walletName: string) => {
-    setWalletConnected(true)
-    setWalletInfo({
-      name: walletName,
-      address: "GCKFBEIYTKQTPD5ZXQGZXPQJQUZN3KYJCSJDMB7QBWQTQXQZXQGZXPQJ",
-      balance: "1,234.56",
-    })
-  }
-
-  const handleWalletDisconnect = () => {
-    setWalletConnected(false)
-    setWalletInfo({ name: "", address: "", balance: "0" })
-  }
 
   const handlePurchaseClick = () => {
     setShowPurchaseModal(true)
@@ -70,12 +42,7 @@ export default function KaizenApp() {
         </div>
         <div className="flex items-center gap-2">
           <WalletStatus
-            isConnected={walletConnected}
-            walletName={walletInfo.name}
-            address={walletInfo.address}
-            balance={walletInfo.balance}
             onConnect={() => setShowWalletConnect(true)}
-            onDisconnect={handleWalletDisconnect}
           />
           <Button
             variant="ghost"
@@ -321,65 +288,10 @@ export default function KaizenApp() {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-kaizen-black border-t border-kaizen-dark-gray">
-        <div className="flex items-center justify-around py-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full ${
-              activeTab === "home"
-                ? "bg-kaizen-yellow text-kaizen-black"
-                : "text-kaizen-gray hover:text-kaizen-white"
-            }`}
-            onClick={() => handleTabClick("home")}
-          >
-            <Home className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full ${
-              activeTab === "search"
-                ? "bg-kaizen-yellow text-kaizen-black"
-                : "text-kaizen-gray hover:text-kaizen-white"
-            }`}
-            onClick={() => handleTabClick("search")}
-          >
-            <Search className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full ${
-              activeTab === "calendar"
-                ? "bg-kaizen-yellow text-kaizen-black"
-                : "text-kaizen-gray hover:text-kaizen-white"
-            }`}
-            onClick={() => handleTabClick("calendar")}
-          >
-            <Calendar className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full ${
-              activeTab === "profile"
-                ? "bg-kaizen-yellow text-kaizen-black"
-                : "text-kaizen-gray hover:text-kaizen-white"
-            }`}
-            onClick={() => handleTabClick("profile")}
-          >
-            <User className="w-5 h-5" />
-          </Button>
-        </div>
-      </div>
-
       {/* Modals */}
       <WalletConnect
         isOpen={showWalletConnect}
         onClose={() => setShowWalletConnect(false)}
-        onConnect={handleWalletConnect}
       />
 
       <PurchaseModal
@@ -388,8 +300,7 @@ export default function KaizenApp() {
         eventTitle="Blackpink Concert"
         eventPrice="50 XLM"
         eventImage="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-zY5f7bxQlrK3C1CkraP1yzFTbVqxtc.png"
-        isWalletConnected={walletConnected}
-        walletAddress={walletInfo.address}
+        isWalletConnected={isConnected}
         onConnectWallet={() => setShowWalletConnect(true)}
       />
     </div>
