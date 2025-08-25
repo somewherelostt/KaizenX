@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Calendar, Home, User, Filter, Heart, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,8 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { WalletConnect } from "@/components/wallet-connect"
 import { WalletStatus } from "@/components/wallet-status"
 import { PurchaseModal } from "@/components/purchase-modal"
+import { getAccountBalance } from "@/lib/stellar"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import * as FreighterApi from "@stellar/freighter-api"
 
 export default function KaizenApp() {
   const [activeTab, setActiveTab] = useState("home")
@@ -23,7 +25,107 @@ export default function KaizenApp() {
     address: "",
     balance: "0",
   })
+  const [isLoading, setIsLoading] = useState(false) // Changed to false for immediate load
   const router = useRouter()
+
+  // Optional: Check for existing wallet connection manually
+  // Disabled auto-check for better demo performance
+  useEffect(() => {
+    // Quick check for stored wallet without network calls
+    const storedWallet = localStorage.getItem('kaizen_wallet')
+    const manuallyDisconnected = localStorage.getItem('kaizen_wallet_disconnected')
+    
+    if (storedWallet && manuallyDisconnected !== 'true') {
+      try {
+        const walletData = JSON.parse(storedWallet)
+        const oneDay = 24 * 60 * 60 * 1000
+        
+        // If stored connection is recent, restore it (without network verification for speed)
+        if (Date.now() - walletData.timestamp < oneDay && walletData.connected) {
+          setWalletConnected(true)
+          setWalletInfo({
+            name: walletData.name,
+            address: walletData.address,
+            balance: walletData.balance, // Use stored balance initially
+          })
+        }
+      } catch (error) {
+        console.log("Error parsing stored wallet data")
+        localStorage.removeItem('kaizen_wallet')
+      }
+    }
+  }, [])
+
+  const checkExistingConnection = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Check if user manually disconnected - if so, don't auto-reconnect
+      const manuallyDisconnected = localStorage.getItem('kaizen_wallet_disconnected')
+      if (manuallyDisconnected === 'true') {
+        return // Don't auto-reconnect after manual disconnect
+      }
+      
+      // First check localStorage for recent connection
+      const storedWallet = localStorage.getItem('kaizen_wallet')
+      if (storedWallet) {
+        const walletData = JSON.parse(storedWallet)
+        
+        // Check if connection is less than 24 hours old
+        const oneDay = 24 * 60 * 60 * 1000
+        if (Date.now() - walletData.timestamp < oneDay && walletData.connected) {
+          // Add timeout to prevent hanging
+          const timeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Connection check timeout')), 5000)
+          )
+          
+          try {
+            // Verify the connection is still active with Freighter (with timeout)
+            const isConnected = await Promise.race([
+              FreighterApi.isConnected(),
+              timeout
+            ])
+            
+            if (isConnected) {
+              // Refresh the balance (with timeout)
+              const currentBalance = await Promise.race([
+                getAccountBalance(walletData.address),
+                timeout
+              ]) as string
+              
+              setWalletConnected(true)
+              setWalletInfo({
+                name: walletData.name,
+                address: walletData.address,
+                balance: currentBalance,
+              })
+              
+              // Update stored balance
+              localStorage.setItem('kaizen_wallet', JSON.stringify({
+                ...walletData,
+                balance: currentBalance,
+                timestamp: Date.now()
+              }))
+              
+              return // Successfully restored connection
+            }
+          } catch (error) {
+            console.log("Stored wallet no longer valid or timeout occurred, clearing...", error)
+            localStorage.removeItem('kaizen_wallet')
+          }
+        } else {
+          // Connection too old, clear it
+          localStorage.removeItem('kaizen_wallet')
+        }
+      }
+      
+    } catch (error) {
+      console.log("No existing wallet connection found", error)
+      localStorage.removeItem('kaizen_wallet')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab)
@@ -34,22 +136,50 @@ export default function KaizenApp() {
     }
   }
 
-  const handleWalletConnect = (walletName: string) => {
+  const handleWalletConnect = async (walletName: string, publicKey: string, balance: string) => {
     setWalletConnected(true)
     setWalletInfo({
       name: walletName,
-      address: "GCKFBEIYTKQTPD5ZXQGZXPQJQUZN3KYJCSJDMB7QBWQTQXQZXQGZXPQJ",
-      balance: "1,234.56",
+      address: publicKey,
+      balance: balance,
     })
+    
+    // Clear the manual disconnect flag since user is actively connecting
+    localStorage.removeItem('kaizen_wallet_disconnected')
+    
+    // Store in localStorage for persistence
+    localStorage.setItem('kaizen_wallet', JSON.stringify({
+      connected: true,
+      name: walletName,
+      address: publicKey,
+      balance: balance,
+      timestamp: Date.now()
+    }))
   }
 
   const handleWalletDisconnect = () => {
     setWalletConnected(false)
     setWalletInfo({ name: "", address: "", balance: "0" })
+    
+    // Clear from localStorage and mark as manually disconnected
+    localStorage.removeItem('kaizen_wallet')
+    localStorage.setItem('kaizen_wallet_disconnected', 'true')
   }
 
   const handlePurchaseClick = () => {
     setShowPurchaseModal(true)
+  }
+
+  // Show loading spinner while checking wallet connection
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-kaizen-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-kaizen-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-kaizen-white">Checking wallet connection...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -187,7 +317,7 @@ export default function KaizenApp() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-bold text-2xl">$40.230</p>
+                      <p className="text-white font-bold text-2xl">50 XLM</p>
                     </div>
                   </div>
                   <Button
@@ -304,9 +434,10 @@ export default function KaizenApp() {
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
         eventTitle="Blackpink Concert"
-        eventPrice="$40.230"
+        eventPrice="50 XLM"
         eventImage="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-zY5f7bxQlrK3C1CkraP1yzFTbVqxtc.png"
         isWalletConnected={walletConnected}
+        walletAddress={walletInfo.address}
         onConnectWallet={() => setShowWalletConnect(true)}
       />
     </div>

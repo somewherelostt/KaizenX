@@ -1,3 +1,14 @@
+export async function GET() {
+  try {
+    if (client._connected === false) {
+      await client.connect()
+    }
+    const result = await client.query('SELECT * FROM events ORDER BY id DESC')
+    return NextResponse.json(result.rows, { status: 200 })
+  } catch (err) {
+    return NextResponse.json({ error: "Server error" }, { status: 500 })
+  }
+}
 
 import { NextResponse } from "next/server"
 import { Client } from "pg"

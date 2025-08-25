@@ -1,16 +1,8 @@
-declare global {
-  interface Window {
-    freighterApi?: {
-      getPublicKey: () => Promise<string>
-      isConnected: () => Promise<boolean>
-      signTransaction: (tx: string, options?: any) => Promise<any>
-    }
-  }
-}
 "use client"
 
 import { useState } from "react"
-import { Server } from "stellar-sdk"
+import { Horizon } from "@stellar/stellar-sdk"
+import * as FreighterApi from "@stellar/freighter-api"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { X, Check, ExternalLink } from "lucide-react"
@@ -50,16 +42,51 @@ export function WalletConnect({ isOpen, onClose, onConnect }: WalletConnectProps
     let publicKey = ""
     let balance = "0"
 
-    if (walletName === "Freighter" && window.freighterApi) {
+    if (walletName === "Freighter") {
       try {
-        publicKey = await window.freighterApi.getPublicKey()
+        // Check if Freighter extension is available
+        if (!await FreighterApi.isConnected()) {
+          throw new Error("Freighter wallet extension not found. Please install Freighter.")
+        }
+        
+        // Request access from Freighter
+        const accessResult = await FreighterApi.requestAccess()
+        
+        if (accessResult.error) {
+          throw new Error(accessResult.error)
+        }
+        
+        publicKey = accessResult.address
+        
+        if (!publicKey) {
+          throw new Error("No public key received from Freighter")
+        }
+        
+        console.log("Freighter connected successfully:", publicKey.substring(0, 10) + "...")
+        
         // Fetch XLM balance from Stellar testnet
-        const server = new Server("https://horizon-testnet.stellar.org")
-        const account = await server.loadAccount(publicKey)
-  const xlm = account.balances.find((b: any) => b.asset_type === "native")
-        balance = xlm ? xlm.balance : "0"
-      } catch (err) {
-        // fallback or error
+        const server = new Horizon.Server("https://horizon-testnet.stellar.org")
+        try {
+          const account = await server.loadAccount(publicKey)
+          const xlm = account.balances.find((b: any) => b.asset_type === "native")
+          balance = xlm ? parseFloat(xlm.balance).toFixed(2) : "0"
+        } catch (balanceErr) {
+          console.log("Could not fetch balance, account may not exist on testnet:", balanceErr)
+          balance = "0"
+        }
+        
+      } catch (err: any) {
+        console.error("Freighter connection error:", err)
+        
+        // Show user-friendly error messages
+        if (err.message?.includes("not found") || err.message?.includes("not available")) {
+          alert("Please install the Freighter wallet extension first!")
+        } else if (err.message?.includes("rejected") || err.message?.includes("denied")) {
+          alert("Wallet connection was rejected. Please try again and approve the connection.")
+        } else {
+          alert(`Wallet connection failed: ${err.message || 'Unknown error'}`)
+        }
+        
         publicKey = ""
         balance = "0"
       }
