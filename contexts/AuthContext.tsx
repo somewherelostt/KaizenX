@@ -132,7 +132,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("Registration response ok:", response.ok);
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
         console.error("Registration error data:", errorData);
         throw new Error(errorData.error || "Registration failed");
       }
@@ -144,6 +144,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return await login(email, password);
     } catch (error) {
       console.error("Registration error:", error);
+      // Check if it's a CORS or network error
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        console.error("Network error - likely CORS issue or server unreachable");
+      }
       return false;
     }
   };
