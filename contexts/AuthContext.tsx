@@ -107,6 +107,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return true;
     } catch (error) {
       console.error("Login error:", error);
+      // Clear any stale auth state on login failure
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem("token");
       return false;
     }
   };
