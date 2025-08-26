@@ -7,7 +7,8 @@
     "STELLAR_NETWORK": "testnet",
     "STELLAR_HORIZON_URL": "https://horizon-testnet.stellar.org",
     "STELLAR_SOROBAN_RPC_URL": "https://soroban-testnet.stellar.org",
-    "NEXT_PUBLIC_APP_NAME": "Kaizen Event Platform"
+    "NEXT_PUBLIC_APP_NAME": "Kaizen Event Platform",
+    "NEXT_PUBLIC_API_URL": "https://kaizen-web3-app-production.up.railway.app"
   },
   "functions": {
     "app/api/**/*.ts": {
