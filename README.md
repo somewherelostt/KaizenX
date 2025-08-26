@@ -39,22 +39,22 @@ See Kaizen in action! Our demo showcases the exact functionality shown in our li
 <div align="center">
 
 ### 🏠 Home Screen - Event Discovery & Joining
-<img src="device-mockup_3x_postspark_2025-08-26_10-20-21-1.png" alt="Kaizen Home Screen showing events in New Delhi with XLM pricing and Join now functionality" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+<img src="public/device-mockup_3x_postspark_2025-08-26_10-20-21-1.png" alt="Kaizen Home Screen showing events in New Delhi with XLM pricing and Join now functionality" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
 *Mobile-first event discovery with location-based filtering, XLM pricing (0.03 XLM shown), and instant event joining*
 
 ### 👤 User Profile & Collectibles
-<img src="a86a2b6b-f663-4ae0-b90b-094163df706e.png" alt="User XOXO profile showing 2 NFTs collected, 2 events attended, 10000 XLM balance" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+<img src="public/a86a2b6b-f663-4ae0-b90b-094163df706e.png" alt="User XOXO profile showing 2 NFTs collected, 2 events attended, 10000 XLM balance" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
 *Complete user profile with wallet connection status, event statistics, NFT collection, and XLM balance display*
 
 ### 💳 Real Transaction Flow
-<img src="384shots_so.png" alt="Freighter wallet transaction processing showing payment to kaizen-x-delta.vercel.app with memo field" width="500" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+<img src="public/384shots_so.png" alt="Freighter wallet transaction processing showing payment to kaizen-x-delta.vercel.app with memo field" width="500" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
 *Live Freighter wallet integration showing actual transaction processing with memo field for event joining*
 
 ### 📱 Mobile Experience
-<img src="device-mockup_3x_postspark_2025-08-26_10-20-32-1.png" alt="Additional mobile interface views" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+<img src="public/device-mockup_3x_postspark_2025-08-26_10-20-32-1.png" alt="Additional mobile interface views" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
 *Responsive mobile design optimized for touch interactions and native app-like experience*
 
