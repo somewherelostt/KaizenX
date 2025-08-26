@@ -21,3 +21,18 @@ export const imageUrl = (path?: string) => {
   if (path.startsWith("http")) return path;
   return `${API_BASE_URL}${path}`;
 };
+
+// Generate Stellar Expert verification link
+export const stellarExpertUrl = (accountId?: string, transactionHash?: string, network: 'mainnet' | 'testnet' = 'mainnet') => {
+  const baseUrl = `https://stellar.expert/explorer/${network === 'mainnet' ? 'public' : 'testnet'}`;
+  
+  if (transactionHash) {
+    return `${baseUrl}/tx/${transactionHash}`;
+  }
+  
+  if (accountId) {
+    return `${baseUrl}/account/${accountId}`;
+  }
+  
+  return 'https://stellar.expert/';
+};
