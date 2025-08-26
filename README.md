@@ -1,330 +1,295 @@
-# Kaizen Web3 Event Platform
+# Kaizen - Web3 Events on Stellar 🌟
 
-Kaizen is a full-stack web3 application built for the Stellar blockchain hackathon. It empowers event organizers to list events, create NFTs and tokens, and enables attendees to join events and claim on-chain rewards. All core actions—event creation, attendance, NFT minting, and token distribution—are performed on the Stellar blockchain, leveraging wallet integrations and Soroban smart contracts.
+**Live events, on-chain tickets, and POAP rewards powered by Stellar blockchain**
 
-## 🚀 Quick Start
+![Kaizen Banner](/public/placeholder-logo.png)
 
-### Prerequisites
-- Node.js 18+ and pnpm
-- MongoDB or PostgreSQL
-- Git
-- Rust (for smart contracts)
+## 🎯 Project Overview
 
-### Setup
-```bash
-# Clone and setup
-git clone <your-repo>
-cd kaizen-web3-app
+Kaizen is a decentralized event platform that allows organizers to list events, sell blockchain-based tickets, and automatically airdrop NFTs/POAPs to attendees. Built on the Stellar network for fast, low-cost transactions.
 
-# Auto setup (Windows)
-setup.bat
+### ✨ Key Features
 
-# Auto setup (Linux/Mac)
-chmod +x setup.sh
-./setup.sh
+- **📅 Event Discovery**: Browse events with filtering by Live Shows, Tourism, Workshops, etc.
+- **🎫 On-Chain Tickets**: Secure, transparent ticket sales via Stellar blockchain
+- **🏆 POAP Rewards**: Automatic NFT minting for event attendees as proof of attendance
+- **💎 Collectibles**: View and manage your earned NFTs and POAPs
+- **💱 Stellar Integration**: Freighter wallet support with XLM payments
+- **📱 Mobile-First**: Responsive design optimized for mobile experiences
 
-# Manual setup
-pnpm install
-cd backend && npm install
-```
+### 🎨 Design System
 
-### Running the Application
-```bash
-# Terminal 1: Start frontend
-pnpm run dev
+- **Visual Language**: Dark UI with Urbanist typography, rounded cards, subtle glass effects
+- **Color Palette**: 
+  - Background: `#000000`
+  - Surfaces: `#404040`, `#C1C1C1` 
+  - Text: `#FEFEFE`
+  - Accent: `#F2F862` (Kaizen Yellow)
 
-# Terminal 2: Start backend
-cd backend
-npm run dev
+## 🏗️ Tech Stack
 
-# Terminal 3: Start MongoDB (if using MongoDB)
-mongod
-```
-
-Visit: http://localhost:3000
-
-## 📋 Features
-
-### Core Features
-- **Event Management**: Create, list, and manage events
-- **Web3 Wallet Integration**: Freighter, Albedo, Lobstr support
-- **Ticket Purchasing**: Buy tickets with XLM cryptocurrency
-- **NFT Rewards**: Commemorative NFTs for event attendees
-- **Token Rewards**: Earn KZR tokens for event participation
-- **User Profiles**: Track events, NFTs, and token balance
-
-### Blockchain Features
-- **Smart Contracts**: Soroban contracts on Stellar testnet
-- **Decentralized Storage**: On-chain event and ticket data
-- **Cross-border Payments**: Instant XLM transactions
-- **Asset Tokenization**: Custom NFTs and reward tokens
-
-## 🏗️ Architecture
-
-### Frontend (Next.js)
-```
-app/
-├── page.tsx              # Home page with event listings
-├── event/[id]/page.tsx   # Event details
-├── event/create/page.tsx # Create new events
-├── calendar/page.tsx     # Calendar view
-├── profile/page.tsx      # User profile
-└── search/page.tsx       # Search events
-```
-
-### Backend (Node.js/Express)
-```
-backend/src/
-├── index.js              # Main server
-├── auth.js               # Authentication
-├── upload.js             # File uploads
-└── models/
-    ├── User.js           # User schema
-    └── Event.js          # Event schema
-```
-
-### Smart Contracts (Soroban)
-```
-contracts/src/
-├── event_manager.rs      # Event creation & ticketing
-├── nft_minter.rs         # NFT minting for events
-└── token_rewards.rs      # Reward token distribution
-```
-
-## 🔧 Technologies
-
-### Frontend Stack
+### Frontend
 - **Next.js 15** - React framework
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
-- **Radix UI** - Component library
+- **shadcn/ui** - UI components
 - **Stellar SDK** - Blockchain integration
+- **Freighter** - Wallet connection
 
-### Backend Stack
-- **Node.js** - Runtime
-- **Express.js** - Web framework
-- **MongoDB/PostgreSQL** - Database
+### Backend
+- **Node.js + Express** - API server
+- **MongoDB** - Off-chain data storage
 - **JWT** - Authentication
-- **Multer** - File uploads
 
-### Blockchain Stack
-- **Stellar Network** - Blockchain platform
-- **Soroban** - Smart contract platform
-- **Freighter Wallet** - Primary wallet
-- **Horizon API** - Stellar data access
+### Blockchain
+- **Soroban** - Smart contracts (Rust)
+- **Stellar Testnet** - Deployment network
 
-## 📱 Usage Guide
+## � Quick Start
 
-### For Event Organizers
+### Prerequisites
+- Node.js 18+
+- Rust toolchain
+- Stellar CLI
+- MongoDB connection
 
-1. **Connect Wallet**: Use Freighter wallet extension
-2. **Create Event**: Navigate to "Create Event"
-3. **Set Details**: Title, date, location, price
-4. **Deploy Assets**: Automatically create NFTs and set rewards
-5. **Monitor**: Track ticket sales and attendees
+### 1. Clone & Install
 
-### For Event Attendees
+```bash
+git clone https://github.com/somewherelostt/KaizenX.git
+cd kaizen-web3-app
 
-1. **Browse Events**: Discover events on homepage
-2. **Connect Wallet**: Link your Stellar wallet
-3. **Buy Ticket**: Purchase with XLM
-4. **Attend Event**: Check-in using blockchain ticket
-5. **Claim Rewards**: Get NFTs and reward tokens
+# Install frontend dependencies
+npm install
 
-## 🔐 Smart Contract Integration
+# Install backend dependencies
+cd backend
+npm install
+cd ..
+```
 
-### Contract Addresses (Testnet)
+### 2. Environment Setup
+
+Create `.env.local` in the root:
+
 ```env
-NEXT_PUBLIC_EVENT_MANAGER_CONTRACT=CDXXXXXX...
-NEXT_PUBLIC_NFT_MINTER_CONTRACT=CDXXXXXX...
-NEXT_PUBLIC_TOKEN_REWARDS_CONTRACT=CDXXXXXX...
+# Database
+DATABASE_URL=mongodb://your-mongo-connection-string
+
+# JWT Secret
+JWT_SECRET=your-jwt-secret-key
+
+# Stellar Contracts (will be set after deployment)
+NEXT_PUBLIC_KAIZEN_EVENT_CONTRACT=CXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-### Key Functions
-```typescript
-// Create event on blockchain
-const result = await createEventOnChain(
-  organizerAddress,
-  title,
-  description,
-  date,
-  location,
-  price,
-  maxAttendees,
-  tokenReward
-)
+### 3. Deploy Smart Contract
 
-// Purchase ticket
-const ticket = await purchaseTicketOnChain(eventId, userAddress)
-
-// Mint NFT reward
-const nft = await mintEventNFT(userAddress, eventId, metadata)
-
-// Claim reward tokens
-const tokens = await claimEventReward(userAddress, eventId)
-```
-
-## 🚀 Deployment
-
-### Smart Contracts
 ```bash
 cd contracts
-cargo build --target wasm32-unknown-unknown --release
+
+# Build the contract
+stellar contract build
+
+# Deploy (Windows)
+./scripts/deploy.bat
+
+# Or deploy (Linux/Mac)
 ./scripts/deploy.sh
 ```
 
-### Frontend (Vercel)
+Copy the returned contract address to your `.env.local` file.
+
+### 4. Start Development
+
 ```bash
-pnpm run build
-# Deploy to Vercel or your preferred platform
+# Start backend
+cd backend
+npm run dev
+
+# Start frontend (new terminal)
+npm run dev
 ```
 
-### Backend (VPS/Cloud)
+Visit `http://localhost:3000` 🎉
+
+## 📱 Core User Flows
+
+### For Event Organizers
+1. Create account and connect Stellar wallet
+2. List new event with details and pricing
+3. Contract automatically deployed for the event
+4. Optionally configure NFT/POAP rewards
+5. Receive XLM payments when users join
+
+### For Event Attendees  
+1. Browse events by category
+2. Connect Freighter wallet
+3. Click "Join" to purchase ticket + join blockchain event
+4. Automatic POAP minting upon successful join
+5. View collected NFTs in profile
+
+## � Smart Contract Architecture
+
+### Kaizen Event Contract (`kaizen_event`)
+
+Each event gets its own contract instance for security and simplicity.
+
+**Key Functions:**
+- `init(organizer, name, token?)` - Initialize event with optional POAP contract
+- `join(attendee)` - User joins event, mints POAP if configured  
+- `has_joined(addr)` - Check if address joined
+- `info()` - Get event details (name, organizer, join count)
+
+**Security Features:**
+- Host-managed authentication via `require_auth()`
+- Prevents double-joining
+- Only organizer can modify settings
+
+## 🎨 UI Components
+
+### Key Screens
+- **Home/Discover**: Event feed with category filters and search
+- **Event Detail**: Full event info with join CTA and attendee previews  
+- **Calendar**: Date-based event browsing
+- **Profile**: User's collected POAPs and event history
+- **Transaction Drawer**: Real-time transaction status with explorer links
+
+### Design Patterns
+- 44px minimum touch targets
+- Optimistic UI with loading states
+- Toast notifications for actions
+- Glass morphism effects with subtle glows
+
+## � Wallet Integration
+
+### Supported Wallets
+- **Freighter** (Primary)
+- Wallet Standard support planned
+
+### Transaction Flow
+1. User clicks "Join Event" 
+2. Payment transaction (if event has cost)
+3. Smart contract `join()` call with user auth
+4. POAP minting (if configured)
+5. Success confirmation with tx hash
+
+## 📊 Database Schema
+
+### Events (MongoDB)
+```javascript
+{
+  title: String,
+  description: String,  
+  date: Date,
+  location: String,
+  price: Number,
+  seats: Number,
+  category: String,
+  imageUrl: String,
+  createdBy: ObjectId, // User reference
+  contractAddress: String // Deployed contract
+}
+```
+
+### Users (MongoDB)
+```javascript
+{
+  username: String,
+  email: String,
+  walletAddress: String,
+  imageUrl: String
+}
+```
+
+## 🌐 Deployment
+
+### Frontend (Vercel/Netlify)
 ```bash
-cd backend
 npm run build
-# Deploy to your preferred cloud provider
+# Deploy build folder
 ```
 
-## 🔍 Testing
-
-### Frontend Tests
-```bash
-pnpm run test
-```
-
-### Backend Tests
+### Backend (Railway/Heroku)
 ```bash
 cd backend
-npm run test
+# Set environment variables
+# Deploy via platform
 ```
 
-### Contract Tests
+### Contracts (Stellar Testnet)
 ```bash
 cd contracts
-cargo test
+stellar contract deploy --wasm target/wasm32-unknown-unknown/release/kaizen_event.wasm --network testnet --source your-key
 ```
 
-### End-to-End Testing
+## 🧪 Testing
+
 ```bash
-# Start all services
-pnpm run dev & cd backend && npm run dev &
+# Frontend tests
+npm test
 
-# Run E2E tests
-pnpm run test:e2e
+# Contract tests  
+cd contracts
+cargo test
+
+# E2E tests
+npm run test:e2e
 ```
 
-## 🌐 Environment Configuration
+## 🏆 Hackathon Focus
 
-### Frontend (.env.local)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:4000
-NEXT_PUBLIC_EVENT_MANAGER_CONTRACT=CDXXXXXX...
-NEXT_PUBLIC_NFT_MINTER_CONTRACT=CDXXXXXX...
-NEXT_PUBLIC_TOKEN_REWARDS_CONTRACT=CDXXXXXX...
-```
+Kaizen showcases the power of Stellar for:
 
-### Backend (.env)
-```env
-DB_URL=mongodb://localhost:27017/kaizen-web3
-JWT_SECRET=your-secret-key
-PORT=4000
-NODE_ENV=development
-```
+### ✅ Cross-border Event Ticketing
+- Global XLM payments without traditional payment processors
+- Instant settlement and low fees
+- Universal access regardless of banking infrastructure
 
-## 📚 API Documentation
+### ✅ Decentralized Asset Distribution  
+- Automatic POAP minting through smart contracts
+- Verifiable proof of attendance on blockchain
+- Composable NFT metadata and utilities
 
-### Event Endpoints
-- `GET /api/events` - List all events
-- `POST /api/events` - Create new event
-- `GET /api/events/:id` - Get event details
-- `PUT /api/events/:id` - Update event
-- `DELETE /api/events/:id` - Delete event
+### ✅ Real-World Web3 UX
+- Modern mobile-first interface
+- Seamless wallet integration
+- Transaction status tracking with explorer links
 
-### User Endpoints
-- `POST /api/register` - User registration
-- `POST /api/login` - User login
-- `GET /api/users/me` - Get current user
-
-### Upload Endpoints
-- `POST /api/events/:id/image` - Upload event image
-- `POST /api/users/:id/image` - Upload profile image
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Wallet Connection Failed**
-   - Install Freighter browser extension
-   - Switch to Stellar testnet
-   - Ensure account has XLM balance
-
-2. **Contract Deployment Issues**
-   - Verify Rust/Soroban installation
-   - Check network configuration
-   - Ensure sufficient XLM for fees
-
-3. **Database Connection**
-   - Start MongoDB service
-   - Check connection string
-   - Verify database exists
-
-4. **Build Failures**
-   - Clear node_modules and reinstall
-   - Check Node.js version compatibility
-   - Verify environment variables
-
-See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for detailed solutions.
+### ✅ Smart Contract Innovation
+- One-contract-per-event architecture for security
+- Host-managed authentication with Stellar
+- Optional token/NFT reward configuration
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch
-3. Make changes
-4. Add tests
-5. Submit pull request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
-### Development Guidelines
-- Follow TypeScript best practices
-- Add comprehensive tests
-- Update documentation
-- Ensure security compliance
+## 📜 License
 
-## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-MIT License - see [LICENSE](./LICENSE) file
+## � Links
 
-## 🏆 Hackathon Focus
+- **Live Demo**: [https://kaizen-web3.vercel.app](https://kaizen-web3.vercel.app)
+- **Contract Explorer**: [https://stellar.expert/explorer/testnet](https://stellar.expert/explorer/testnet)
+- **Documentation**: [Stellar Developer Docs](https://developers.stellar.org)
 
-Kaizen is designed to showcase:
+## 💡 Roadmap
 
-### ✅ Cross-border Payments
-- Instant XLM payments for tickets
-- No traditional payment processor fees
-- Global accessibility regardless of location
-
-### ✅ Decentralized Event Management  
-- On-chain event creation and ticketing
-- Immutable event records
-- Trustless ticket verification
-
-### ✅ Asset Tokenization
-- Custom NFTs for event memorabilia
-- Fungible reward tokens (KZR)
-- Real-time blockchain transactions
-
-### ✅ Seamless Web3 Integration
-- Modern React frontend with wallet connectivity
-- Intuitive user experience
-- Mobile-responsive design
-
-## 📞 Support
-
-- **Documentation**: Check README files in each directory
-- **Issues**: GitHub Issues
-- **Discord**: [Stellar Dev Discord](https://discord.gg/stellar-dev)
-- **Email**: your-email@example.com
+- [ ] Multi-wallet support (Lobstr, Rabet)  
+- [ ] Event ticket resale marketplace
+- [ ] Advanced POAP metadata and rarity
+- [ ] DAO governance for platform decisions
+- [ ] Mainnet deployment
+- [ ] Mobile apps (React Native)
 
 ---
 
-**Built with ❤️ for the Stellar Hackathon 2025**
+**Built with ❤️ for the Stellar ecosystem**
+
+For questions or support, reach out to [@somewherelostt](https://github.com/somewherelostt)

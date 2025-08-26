@@ -6,15 +6,28 @@ const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
 export const register = async (req, res) => {
   try {
+    console.log("Registration request received:", req.body);
     const { username, email, password } = req.body;
+    
+    if (!username || !email || !password) {
+      console.log("Missing required fields:", { username: !!username, email: !!email, password: !!password });
+      return res.status(400).json({ error: "All fields are required" });
+    }
+    
     const existing = await User.findOne({ email });
-    if (existing)
+    if (existing) {
+      console.log("Email already exists:", email);
       return res.status(400).json({ error: "Email already in use" });
+    }
+    
     const hash = await bcrypt.hash(password, 10);
     const user = new User({ username, email, password: hash });
     await user.save();
-    res.status(201).json({ message: "User registered" });
+    
+    console.log("User registered successfully:", { username, email });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
+    console.error("Registration error:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(400).json({ error: message });
   }

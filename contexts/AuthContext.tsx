@@ -78,6 +78,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log("Login attempt:", { email, password: "***" });
+      console.log("Login API URL:", apiUrl("/api/login"));
+      
       const response = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: {
@@ -86,12 +89,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log("Login response status:", response.status);
+      console.log("Login response ok:", response.ok);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Login error data:", errorData);
         throw new Error(errorData.error || "Login failed");
       }
 
       const data = await response.json();
+      console.log("Login success data:", data);
+      
       setToken(data.token);
       localStorage.setItem("token", data.token);
       await fetchUser(data.token);
@@ -104,6 +113,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (username: string, email: string, password: string): Promise<boolean> => {
     try {
+      console.log("Registration attempt:", { username, email, password: "***" });
+      console.log("API URL:", apiUrl("/api/register"));
+      
       const response = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: {
@@ -112,10 +124,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify({ username, email, password }),
       });
 
+      console.log("Registration response status:", response.status);
+      console.log("Registration response ok:", response.ok);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Registration error data:", errorData);
         throw new Error(errorData.error || "Registration failed");
       }
+
+      const successData = await response.json();
+      console.log("Registration success data:", successData);
 
       // Auto-login after successful registration
       return await login(email, password);

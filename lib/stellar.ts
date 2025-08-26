@@ -10,6 +10,7 @@ import {
   Asset,
   Keypair,
   Memo,
+  Contract,
 } from '@stellar/stellar-sdk'
 import * as FreighterApi from '@stellar/freighter-api'
 
@@ -19,9 +20,183 @@ export const networkPassphrase = Networks.TESTNET
 
 // Contract addresses (these should be set from environment variables)
 export const CONTRACT_ADDRESSES = {
-  EVENT_MANAGER: process.env.NEXT_PUBLIC_EVENT_MANAGER_CONTRACT || '',
-  NFT_MINTER: process.env.NEXT_PUBLIC_NFT_MINTER_CONTRACT || '',
-  TOKEN_REWARDS: process.env.NEXT_PUBLIC_TOKEN_REWARDS_CONTRACT || '',
+  KAIZEN_EVENT: process.env.NEXT_PUBLIC_KAIZEN_EVENT_CONTRACT || '',
+}
+
+// Helper function to build contract invocation transaction
+async function buildContractTransaction(
+  contractAddress: string,
+  method: string,
+  args: any[],
+  source: string
+): Promise<Transaction> {
+  const account = await server.loadAccount(source)
+  
+  const contract = new Contract(contractAddress)
+  const operation = contract.call(method, ...args)
+  
+  const transaction = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase,
+  })
+    .addOperation(operation)
+    .setTimeout(TimeoutInfinite)
+    .build()
+    
+  return transaction
+}
+
+/**
+ * Initialize a new event contract
+ */
+export async function initializeEventContract(
+  organizerAddress: string,
+  eventName: string,
+  tokenAddress?: string
+) {
+  try {
+    if (!CONTRACT_ADDRESSES.KAIZEN_EVENT) {
+      throw new Error('Contract address not configured')
+    }
+
+    const args = [
+      new Address(organizerAddress),
+      eventName,
+      tokenAddress ? new Address(tokenAddress) : null
+    ]
+
+    const transaction = await buildContractTransaction(
+      CONTRACT_ADDRESSES.KAIZEN_EVENT,
+      'init',
+      args,
+      organizerAddress
+    )
+
+    // Sign with Freighter
+    const { signedTxXdr } = await FreighterApi.signTransaction(
+      transaction.toXDR(),
+      { networkPassphrase, address: organizerAddress }
+    )
+
+    // Submit transaction
+    const signedTransaction = new Transaction(signedTxXdr, networkPassphrase)
+    const result = await server.submitTransaction(signedTransaction)
+    
+    if (result.successful) {
+      return {
+        success: true,
+        transactionHash: result.hash,
+      }
+    } else {
+      throw new Error('Transaction failed')
+    }
+  } catch (error) {
+    console.error('Init event contract error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Join an event with payment (main user action) - Fixed to handle event pricing
+ */
+export async function joinEvent(
+  attendeeAddress: string,
+  eventId: number = 1,
+  eventPrice?: string,
+  organizerAddress?: string,
+  eventTitle?: string
+) {
+  try {
+    // Create a short memo (max 28 bytes for Stellar) - format: "JOIN_E1_123456"
+    const timestamp = Date.now().toString().slice(-6)
+    const eventJoinMemo = `JOIN_E${eventId}_${timestamp}`
+    
+    // Determine payment details
+    let recipientAddress = attendeeAddress // Default: send to self (free events)
+    let paymentAmount = "0.0000001" // Minimal amount for free events
+    
+    // If event has a price, send payment to organizer
+    if (eventPrice && eventPrice !== "Free" && organizerAddress) {
+      recipientAddress = organizerAddress
+      paymentAmount = eventPrice.replace(' XLM', '')
+    }
+    
+    // Create the transaction
+    const result = await sendPayment(
+      recipientAddress,
+      paymentAmount,
+      eventJoinMemo
+    )
+
+    if (result.success) {
+      return {
+        success: true,
+        transactionHash: result.transactionHash,
+        ledger: 0,
+      }
+    } else {
+      throw new Error(result.error || 'Transaction failed')
+    }
+  } catch (error) {
+    console.error('Join event error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Check if user has joined the event
+ */
+export async function hasJoinedEvent(userAddress: string, eventId: number = 1): Promise<boolean> {
+  try {
+    if (!CONTRACT_ADDRESSES.KAIZEN_EVENT) {
+      return false
+    }
+
+    const args = [new Address(userAddress), eventId]
+    
+    const transaction = await buildContractTransaction(
+      CONTRACT_ADDRESSES.KAIZEN_EVENT,
+      'has_ticket',
+      args,
+      userAddress
+    )
+
+    // This would need to be a read-only call in a real implementation
+    // For now, return false as we can't easily make read calls without simulation
+    return false
+  } catch (error) {
+    console.error('Check joined status error:', error)
+    return false
+  }
+}
+
+/**
+ * Get event info from contract
+ */
+export async function getEventInfo() {
+  try {
+    if (!CONTRACT_ADDRESSES.KAIZEN_EVENT) {
+      return null
+    }
+
+    // This would need proper contract read implementation
+    // For now, return mock data
+    return {
+      name: 'Mock Event',
+      organizer: 'GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+      tokenAddress: null,
+      joinCount: 0
+    }
+  } catch (error) {
+    console.error('Get event info error:', error)
+    return null
+  }
 }
 
 // Basic Stellar Functions for now - Smart contract integration to be added later
@@ -52,7 +227,9 @@ export async function sendPayment(
       .setTimeout(TimeoutInfinite)
 
     if (memo) {
-      transaction.addMemo(Memo.text(memo))
+      // Ensure memo is within Stellar's 28-byte limit
+      const truncatedMemo = memo.length > 28 ? memo.substring(0, 28) : memo
+      transaction.addMemo(Memo.text(truncatedMemo))
     }
 
     const builtTransaction = transaction.build()

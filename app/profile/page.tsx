@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthModal } from "@/components/auth-modal";
+import { CollectiblesView } from "@/components/collectibles-view";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { apiUrl, imageUrl } from "@/lib/api";
@@ -312,63 +313,7 @@ export default function ProfilePage() {
       {/* Content */}
       <div className="px-4 pb-20">
         {activeTab === "nfts" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-kaizen-white font-semibold text-lg">
-                My NFTs
-              </h3>
-              <span className="text-kaizen-gray text-sm">
-                {nftCollection.length} items
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {nftCollection.map((nft) => (
-                <Card
-                  key={nft.id}
-                  className="bg-kaizen-dark-gray border-none rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-transform"
-                >
-                  <div className="aspect-square relative">
-                    <img
-                      src={
-                        nft.image ||
-                        "/placeholder.svg?height=200&width=200&query=nft-badge"
-                      }
-                      alt={nft.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 right-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium border ${getRarityColor(
-                          nft.rarity
-                        )}`}
-                      >
-                        {nft.rarity}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <h4 className="text-kaizen-white font-semibold text-sm mb-1 truncate">
-                      {nft.name}
-                    </h4>
-                    <p className="text-kaizen-gray text-xs mb-2 truncate">
-                      {nft.event}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-kaizen-gray text-xs">
-                        {nft.date}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-kaizen-gray text-xs">
-                          {nft.attendees}
-                        </span>
-                        <ExternalLink className="w-3 h-3 text-kaizen-gray" />
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <CollectiblesView />
         )}
 
         {activeTab === "history" && (

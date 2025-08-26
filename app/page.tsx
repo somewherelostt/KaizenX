@@ -28,6 +28,8 @@ export default function KaizenApp() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [selectedEvent, setSelectedEvent] = useState<any>(null)
+
   useEffect(() => {
     async function fetchEvents() {
       try {
@@ -59,16 +61,19 @@ export default function KaizenApp() {
     }
   );
 
-  const handlePurchaseClick = () => {
+  const handlePurchaseClick = (event: any) => {
+    setSelectedEvent(event)
     setShowPurchaseModal(true)
   }
 
   // Get the selected event for purchase modal
-  const selectedEvent = featuredEvents[0] || {
+  const defaultEvent = featuredEvents[0] || {
     title: "Blackpink Concert",
     price: "50",
     imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-zY5f7bxQlrK3C1CkraP1yzFTbVqxtc.png"
   }
+
+  const currentSelectedEvent = selectedEvent || defaultEvent
 
   return (
     <div className="min-h-screen bg-kaizen-black text-kaizen-white max-w-sm mx-auto relative">
@@ -309,7 +314,7 @@ export default function KaizenApp() {
                       onClick={(e) => {
                         e.preventDefault();
                         if (!getEventStatus(event.date).isCompleted) {
-                          handlePurchaseClick();
+                          handlePurchaseClick(event);
                         }
                       }}
                       disabled={getEventStatus(event.date).isCompleted}
@@ -373,7 +378,7 @@ export default function KaizenApp() {
                   <Button
                     onClick={(e) => {
                       e.preventDefault()
-                      handlePurchaseClick()
+                      handlePurchaseClick(defaultEvent)
                     }}
                     className="w-full bg-kaizen-yellow text-kaizen-black hover:bg-kaizen-yellow/90 font-semibold rounded-full h-12"
                   >
@@ -482,11 +487,14 @@ export default function KaizenApp() {
       <PurchaseModal
         isOpen={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
-        eventTitle={selectedEvent.title}
-        eventPrice={`${selectedEvent.price || "50"} XLM`}
-        eventImage={imageUrl(selectedEvent.imageUrl) || selectedEvent.imageUrl}
+        eventTitle={currentSelectedEvent.title}
+        eventPrice={`${currentSelectedEvent.price || "50"} XLM`}
+        eventImage={imageUrl(currentSelectedEvent.imageUrl) || currentSelectedEvent.imageUrl}
         isWalletConnected={isConnected}
         onConnectWallet={() => setShowWalletConnect(true)}
+        eventId={currentSelectedEvent._id}
+        organizerAddress={currentSelectedEvent.createdBy?.walletAddress}
+        hasNFTReward={true}
       />
     </div>
   );

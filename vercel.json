@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_KAIZEN_EVENT_CONTRACT": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAUPFDQN3QE",
+    "STELLAR_NETWORK": "testnet",
+    "STELLAR_HORIZON_URL": "https://horizon-testnet.stellar.org",
+    "STELLAR_SOROBAN_RPC_URL": "https://soroban-testnet.stellar.org",
+    "NEXT_PUBLIC_APP_NAME": "Kaizen Event Platform"
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  }
+}
