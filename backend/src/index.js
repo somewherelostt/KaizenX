@@ -30,7 +30,9 @@ app.use(cors({
     'http://192.168.1.10:3000',
     'https://kaizen-web3-app.vercel.app',
     'https://kaizen-web3-app-git-main-somewherelostt.vercel.app',
-    /^https:\/\/kaizen-web3-app-.*\.vercel\.app$/
+    'https://kaizen-x-delta.vercel.app',
+    /^https:\/\/kaizen-web3-app-.*\.vercel\.app$/,
+    /^https:\/\/kaizen-x-.*\.vercel\.app$/
   ],
   credentials: true
 }));
