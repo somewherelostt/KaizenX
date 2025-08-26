@@ -41,7 +41,7 @@ async function createAdminUser() {
     if (existingAdmin) {
       console.log("Admin user already exists!");
       console.log("Email: admin@gmail.com");
-      console.log("Password: admin");
+      console.log("Password: admin@123");
       process.exit(0);
     }
 
