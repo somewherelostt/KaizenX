@@ -39,7 +39,7 @@ See Kaizen in action! Our demo showcases the exact functionality shown in our li
 <div align="center">
 
 ### 🏠 Home Screen - Event Discovery & Joining
-<img src="device-mockup_3x_postspark_2025-08-26_10-20-21.png" alt="Kaizen Home Screen showing events in New Delhi with XLM pricing and Join now functionality" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+<img src="device-mockup_3x_postspark_2025-08-26_10-20-21-1.png" alt="Kaizen Home Screen showing events in New Delhi with XLM pricing and Join now functionality" width="400" style="margin: 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
 *Mobile-first event discovery with location-based filtering, XLM pricing (0.03 XLM shown), and instant event joining*
 
