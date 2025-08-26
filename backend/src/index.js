@@ -24,7 +24,14 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://192.168.1.10:3000'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001', 
+    'http://192.168.1.10:3000',
+    'https://kaizen-web3-app.vercel.app',
+    'https://kaizen-web3-app-git-main-somewherelostt.vercel.app',
+    /^https:\/\/kaizen-web3-app-.*\.vercel\.app$/
+  ],
   credentials: true
 }));
 
