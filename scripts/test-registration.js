@@ -12,7 +12,7 @@ const testRegistration = async () => {
     
     console.log('Sending registration request:', registrationData);
     
-    const response = await fetch('http://localhost:4000/api/register', {
+    const response = await fetch('https://kaizenx-production.up.railway.app/api/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -31,7 +31,7 @@ const testRegistration = async () => {
       
       // Now test login
       console.log('\nTesting login...');
-      const loginResponse = await fetch('http://localhost:4000/api/login', {
+      const loginResponse = await fetch('https://kaizenx-production.up.railway.app/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

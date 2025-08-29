@@ -32,7 +32,7 @@ export default function SearchPage() {
     setHasSearched(true);
     
     try {
-      const response = await fetch(`http://localhost:4000/api/events/search/${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`https://kaizenx-production.up.railway.app/api/events/search/${encodeURIComponent(searchQuery)}`);
       if (response.ok) {
         const results = await response.json();
         setSearchResults(results);

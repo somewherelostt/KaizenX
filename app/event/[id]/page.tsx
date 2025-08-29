@@ -26,7 +26,7 @@ export default function EventDetailPage({
     async function fetchEvent() {
       try {
         const res = await fetch(
-          `http://localhost:4000/api/events/${params.id}`
+          `https://kaizenx-production.up.railway.app/api/events/${params.id}`
         );
         if (!res.ok) throw new Error("Failed to fetch event");
         const data = await res.json();

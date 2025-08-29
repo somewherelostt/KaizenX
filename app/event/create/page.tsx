@@ -27,7 +27,7 @@ export default function CreateEventPage() {
   const [user, setUser] = useState<User | null>(null);
 
   const fetchUser = async () => {
-    const res = await fetch("http://localhost:4000/api/users/me", {
+    const res = await fetch("https://kaizenx-production.up.railway.app/api/users/me", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -78,7 +78,7 @@ export default function CreateEventPage() {
       
       if (image) formData.append("image", image);
 
-      const res = await fetch("http://localhost:4000/api/events", {
+      const res = await fetch("https://kaizenx-production.up.railway.app/api/events", {
         method: "POST",
         body: formData,
       });
