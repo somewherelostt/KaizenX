@@ -57,7 +57,7 @@ export default function EventDetailPage({
           src={
             event.imageUrl
               ? event.imageUrl.startsWith("/uploads/")
-                ? `http://localhost:4000${event.imageUrl}`
+                ? `https://kaizenx-production.up.railway.app${event.imageUrl}`
                 : event.imageUrl
               : "/placeholder.svg"
           }

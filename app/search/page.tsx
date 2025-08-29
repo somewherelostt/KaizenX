@@ -110,7 +110,7 @@ export default function SearchPage() {
                   {/* Event Image */}
                   <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <img
-                      src={event.imageUrl ? `http://localhost:4000${event.imageUrl}` : "/placeholder.jpg"}
+                      src={event.imageUrl ? `https://kaizenx-production.up.railway.app${event.imageUrl}` : "/placeholder.jpg"}
                       alt={event.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {

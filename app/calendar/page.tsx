@@ -160,7 +160,7 @@ export default function CalendarPage() {
                   {/* Event Image */}
                   <div className="flex-shrink-0">
                     <img
-                      src={event.imageUrl ? `http://localhost:4000${event.imageUrl}` : "/placeholder.svg"}
+                      src={event.imageUrl ? `https://kaizenx-production.up.railway.app${event.imageUrl}` : "/placeholder.svg"}
                       alt={event.title}
                       className="w-12 h-12 rounded-xl object-cover"
                     />

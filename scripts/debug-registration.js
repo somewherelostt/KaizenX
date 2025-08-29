@@ -10,7 +10,7 @@ const debugRegistration = () => {
   // Check current location
   console.log("\n🌐 Current Location:");
   console.log("Window location:", typeof window !== 'undefined' ? window.location.href : "Server-side");
-  console.log("API Base URL:", process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
+  console.log("API Base URL:", process.env.NEXT_PUBLIC_API_URL || "https://kaizenx-production.up.railway.app");
   
   // Test registration function
   const testRegistration = async () => {
@@ -23,7 +23,7 @@ const debugRegistration = () => {
     };
     
     // Determine API URL
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://kaizenx-production.up.railway.app";
     const apiUrl = `${apiBaseUrl}/api/register`;
     
     console.log("API URL:", apiUrl);
