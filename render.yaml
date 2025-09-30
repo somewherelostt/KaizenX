@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: kaizenx-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_URL
+        sync: false # You'll need to set this manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STELLAR_NETWORK
+        value: testnet
+      - key: STELLAR_HORIZON_URL
+        value: https://horizon-testnet.stellar.org
+      - key: STELLAR_SOROBAN_RPC_URL
+        value: https://soroban-testnet.stellar.org
+      - key: NEXT_PUBLIC_EVENT_MANAGER_CONTRACT
+        value: ""
+      - key: NEXT_PUBLIC_NFT_MINTER_CONTRACT
+        value: ""
+      - key: NEXT_PUBLIC_TOKEN_REWARDS_CONTRACT
+        value: ""

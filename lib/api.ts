@@ -1,7 +1,7 @@
 // API configuration utility
 // For auth endpoints, use Next.js API routes (always relative to the current domain)
 // For other endpoints (like events), use the backend URL
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://kaizenx-production.up.railway.app";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://kaizenx.onrender.com";
 
 export const apiUrl = (endpoint: string) => {
   // Temporarily use backend directly for all endpoints until Vercel deployment is ready

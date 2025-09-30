@@ -6,7 +6,8 @@ export async function POST(request: NextRequest) {
     const { email, password } = body;
 
     // Get the backend API URL from environment
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://kaizenx-production.up.railway.app";
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_URL || "https://kaizenx.onrender.com";
     
     console.log("Logging in user via backend:", backendUrl);
     

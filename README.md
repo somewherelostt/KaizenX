@@ -159,7 +159,7 @@ Soroban Smart Contracts (Rust)
 ```
 Modern Cloud Infrastructure
 ├── Frontend: Vercel (Next.js optimized)
-├── Backend: Railway/Heroku (Node.js hosting)
+├── Backend: Render/Heroku (Node.js hosting)
 ├── Database: MongoDB Atlas (managed database)
 ├── Contracts: Stellar CLI deployment
 └── CDN: Vercel Edge Network for global performance
