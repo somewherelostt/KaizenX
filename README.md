@@ -17,6 +17,10 @@
 
 ---
 
+## Note
+
+Previously the app was deployed on railway but the credits got over so signup was not working but right now i have changed it to render and sign up is working ( but it will take time to sign up as it will invoke render that takes times)
+
 ---
 
 ## 📺 Video Demo + Live Screenshots
